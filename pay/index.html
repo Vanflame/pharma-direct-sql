@@ -321,7 +321,7 @@
         }
 
         function generateQRCode() {
-            const paymentUrl = `${window.location.origin}/pay/?orderId=${currentOrderId}`;
+            const paymentUrl = `${window.location.origin}/pharma-direct-sql/pay/?orderId=${currentOrderId}`;
             document.getElementById('payment-url').textContent = paymentUrl;
 
             const qrContainer = document.getElementById('qr-code');
