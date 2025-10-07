@@ -1,0 +1,3065 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel — PHARMA DIRECT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../img/icon.png">
+    <link rel="apple-touch-icon" href="../img/icon.png">
+    <link rel="manifest" href="../manifest.json?v=2">
+    <meta name="theme-color" content="#10b981">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="PHARMA DIRECT">
+    <style>
+        /* Ensure badges appear above everything with proper z-index */
+        .admin-order-count-badge {
+            z-index: 9999 !important;
+            position: absolute !important;
+            top: -8px !important;
+            right: -8px !important;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 50% !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 11px !important;
+            font-weight: bold !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+            border: 2px solid white !important;
+            /* Display controlled by JavaScript based on count > 0 */
+        }
+        
+        /* Ensure tab buttons allow overflow for badges */
+        .admin-tab-button {
+            overflow: visible !important;
+        }
+        
+        /* Active tab styling */
+        .admin-tab-button.active {
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            color: white !important;
+            border-color: #10b981 !important;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gray-50">
+    <div class="grid md:grid-cols-[240px_1fr] min-h-screen">
+        <aside class="bg-white border-r border-gray-200 shadow-sm">
+            <!-- Header -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">Admin Panel</h1>
+                        <p class="text-sm text-gray-500">Platform Management</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="p-4 space-y-2">
+                <button data-tab="overview" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl bg-gradient-to-r from-emerald-500 to-blue-600 text-white shadow-sm transition-all duration-200 hover:shadow-md">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                    </svg>
+                    <span class="font-medium">Overview</span>
+                </button>
+                
+                <button data-tab="users" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </svg>
+                    <span class="font-medium">Users</span>
+                </button>
+                
+                <button data-tab="pharmacies" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <span class="font-medium">Pharmacies</span>
+                </button>
+                
+                <button data-tab="orders" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                    <span class="font-medium">Orders</span>
+                </button>
+                
+                <button data-tab="wallet" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                    <span class="font-medium">Wallet Management</span>
+                </button>
+                
+                <button data-tab="cod" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-medium">COD Settings</span>
+                </button>
+            </nav>
+
+            <!-- Logout Section -->
+            <div class="p-4 border-t border-gray-200 mt-auto">
+                <button id="logout" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-red-600 hover:bg-red-50 transition-all duration-200 hover:shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span class="font-medium">Logout</span>
+                </button>
+            </div>
+        </aside>
+        <main class="p-4">
+            <div id="tab-overview" class="space-y-6">
+                <div class="bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl p-6 text-white">
+                    <h1 class="text-2xl font-bold mb-2">Admin Dashboard</h1>
+                    <p class="text-emerald-100">Welcome back! Here's an overview of your platform's performance.</p>
+            </div>
+                
+                <!-- Overview Cards -->
+                <div id="overview-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+
+                <!-- Main Content Grid -->
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <!-- Recent Activities -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+            </div>
+                                <h3 class="text-xl font-bold text-gray-900">Recent Activities</h3>
+                            </div>
+                            <div id="recent-activities" class="space-y-4">
+                                <!-- Activities will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions & System Status -->
+                    <div class="space-y-6">
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">Quick Actions</h3>
+                            </div>
+                            <div class="space-y-3">
+                                <button onclick="document.querySelector('[data-tab=\'users\']').click()" class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">Manage Users</div>
+                                        <div class="text-sm text-gray-600">View and manage customer accounts</div>
+                                    </div>
+                                </button>
+                                
+                                <button onclick="document.querySelector('[data-tab=\'pharmacies\']').click()" class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">Manage Pharmacies</div>
+                                        <div class="text-sm text-gray-600">Approve and manage pharmacy accounts</div>
+                                    </div>
+                                </button>
+                                
+                                <button onclick="document.querySelector('[data-tab=\'orders\']').click()" class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">View Orders</div>
+                                        <div class="text-sm text-gray-600">Monitor and manage all orders</div>
+                                    </div>
+                                </button>
+                                
+                                <button onclick="document.querySelector('[data-tab=\'wallet\']').click()" class="w-full flex items-center gap-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
+                                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900">Wallet Management</div>
+                                        <div class="text-sm text-gray-600">Process withdrawal requests</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- System Status -->
+                        <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">System Status</h3>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-600">Platform Status</span>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                                        Online
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-600">Database</span>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                                        Connected
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-600">Payment Gateway</span>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                                        Active
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-600">Last Backup</span>
+                                    <span class="text-sm text-gray-500">2 hours ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts & Notifications -->
+                <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12 7H4.828zM4 12h16M4 16h16"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Alerts & Notifications</h3>
+                    </div>
+                    <div id="alerts-container" class="space-y-3">
+                        <!-- Alerts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            <div id="tab-users" class="hidden space-y-6">
+                <div class="bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl p-6 text-white">
+                    <h2 class="text-2xl font-bold">User Management</h2>
+                    <p class="text-emerald-100 mt-1">Manage customer accounts and settings</p>
+                </div>
+                
+                <!-- User Search and Filter Controls -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <!-- Search Input -->
+                        <div class="flex-1 max-w-md">
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    id="user-search-input" 
+                                    placeholder="Search by name or email..." 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                                >
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Filter Controls -->
+                        <div class="flex items-center gap-4">
+                            <!-- Status Filter -->
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-700">Status:</label>
+                                <select id="user-status-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                    <option value="all">All Users</option>
+                                    <option value="active">Active Only</option>
+                                    <option value="disabled">Disabled Only</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Clear Filters Button -->
+                            <button 
+                                id="clear-user-filters" 
+                                class="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="users-list" class="space-y-4 p-6"></div>
+            </div>
+            <div id="tab-pharmacies" class="hidden space-y-6">
+                <div class="bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl p-6 text-white">
+                    <h2 class="text-2xl font-bold">Pharmacy Management</h2>
+                    <p class="text-emerald-100 mt-1">Manage pharmacy accounts and approvals</p>
+                </div>
+                
+                <!-- Pharmacy Search and Filter Controls -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                        <!-- Search Input -->
+                        <div class="flex-1 max-w-md">
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    id="pharmacy-search-input" 
+                                    placeholder="Search by name or email..." 
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                                >
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Filter Controls -->
+                        <div class="flex items-center gap-4">
+                            <!-- Status Filter -->
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-700">Status:</label>
+                                <select id="pharmacy-status-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                                    <option value="all">All Pharmacies</option>
+                                    <option value="active">Active Only</option>
+                                    <option value="disabled">Disabled Only</option>
+                                    <option value="approved">Approved Only</option>
+                                    <option value="pending">Pending Approval</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Clear Filters Button -->
+                            <button 
+                                id="clear-pharmacy-filters" 
+                                class="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="pharmacies-list" class="space-y-4 p-6"></div>
+            </div>
+            <div id="tab-orders" class="hidden">
+                <div class="bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl p-6 text-white mb-6">
+                    <h2 class="text-2xl font-bold">Order Management</h2>
+                    <p class="text-emerald-100 mt-1">Manage and track all customer orders</p>
+                </div>
+
+                <!-- Order Status Tabs -->
+                <div class="bg-white rounded-xl border mb-6">
+                    <div class="border-b">
+                        <nav class="flex" id="admin-order-status-tabs">
+                            <button id="tab-all"
+                                class="admin-tab-button active flex-1 py-4 px-6 text-center border-b-2 border-emerald-500 text-emerald-600 font-medium relative overflow-visible">
+                                All Orders
+                                <span
+                                    class="admin-order-count-badge bg-red-500 text-white"
+                                    style="display: none;">0</span>
+                            </button>
+                            <button id="tab-pending"
+                                class="admin-tab-button flex-1 py-4 px-6 text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium relative overflow-visible">
+                                Pending
+                                <span
+                                    class="admin-order-count-badge bg-yellow-500 text-white"
+                                    style="display: none;">0</span>
+                            </button>
+                            <button id="tab-confirmed"
+                                class="admin-tab-button flex-1 py-4 px-6 text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium relative overflow-visible">
+                                Confirmed
+                                <span
+                                    class="admin-order-count-badge bg-blue-500 text-white"
+                                    style="display: none;">0</span>
+                            </button>
+                            <button id="tab-to-be-received"
+                                class="admin-tab-button flex-1 py-4 px-6 text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium relative overflow-visible">
+                                To Be Received
+                                <span
+                                    class="admin-order-count-badge bg-purple-500 text-white"
+                                    style="display: none;">0</span>
+                            </button>
+                            <button id="tab-delivered"
+                                class="admin-tab-button flex-1 py-4 px-6 text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium relative overflow-visible">
+                                Delivered
+                                <span
+                                    class="admin-order-count-badge bg-green-500 text-white"
+                                    style="display: none;">0</span>
+                            </button>
+                            <button id="tab-declined"
+                                class="admin-tab-button flex-1 py-4 px-6 text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium relative overflow-visible">
+                                Declined
+                                <span
+                                    class="admin-order-count-badge bg-gray-500 text-white"
+                                    style="display: none;">0</span>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <div id="orders-list" class="bg-white rounded-xl border"></div>
+            </div>
+
+            <!-- Wallet Management Tab -->
+            <div id="tab-wallet" class="hidden space-y-6">
+                <div class="bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl p-6 text-white">
+                    <h2 class="text-2xl font-bold">Wallet Management</h2>
+                    <p class="text-emerald-100 mt-1">Manage pharmacy withdrawals and wallet balances</p>
+                </div>
+
+                <!-- Withdrawal Requests -->
+                <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Pending Withdrawal Requests</h3>
+                    </div>
+                    <div id="withdrawal-requests-list" class="space-y-3">
+                        <!-- Withdrawal requests will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Pharmacy Wallet Balances -->
+                <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Pharmacy Wallet Balances</h3>
+                    </div>
+                    <div id="pharmacy-wallets-list" class="space-y-3">
+                        <!-- Pharmacy wallets will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-cod" class="hidden space-y-6">
+                <div class="bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl p-6 text-white">
+                    <h2 class="text-2xl font-bold">COD Settings</h2>
+                    <p class="text-emerald-100 mt-1">Configure Cash on Delivery thresholds and limits</p>
+                </div>
+                <form id="cod-form" class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Successful Orders</label>
+                            <input name="codMinOrders" type="number" min="0" class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        placeholder="Min successful orders" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Total Spend (₱)</label>
+                            <input name="codMinSpend" type="number" min="0" class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        placeholder="Min total spend (PHP)" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Maximum COD Amount (₱)</label>
+                            <input name="codMaxLimit" type="number" min="0" class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        placeholder="Max COD amount (PHP)" />
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <button class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/imageCache.js"></script>
+    <script src="../js/loading.js"></script>
+    <script type="module">
+        import { safeDateConversion, formatDate, formatRelativeTime, showError, showSuccess, getProfessionalErrorMessage, setButtonLoading, showLoadingModal, hideLoadingModal } from '../js/supabase-config.js';
+        import { logout, onAuthStateChanged } from '../js/supabase-auth.js';
+        import { supabase } from '../js/supabase-auth.js';
+        import { TABLES } from '../js/supabase-config.js';
+
+        const tabs = document.querySelectorAll('aside [data-tab]');
+        const panels = {
+            overview: document.getElementById('tab-overview'),
+            users: document.getElementById('tab-users'),
+            pharmacies: document.getElementById('tab-pharmacies'),
+            orders: document.getElementById('tab-orders'),
+            wallet: document.getElementById('tab-wallet'),
+            cod: document.getElementById('tab-cod'),
+        };
+
+        async function ensureAdmin(user) {
+            console.log('🔍 ensureAdmin: Checking user:', user.id);
+            const { data: snap } = await supabase.from(TABLES.users).select('*').eq('uid', user.id).single();
+            const exists = !!snap;
+            const data = snap;
+            const role = exists ? (data.role || 'user') : 'user';
+            console.log('🔍 ensureAdmin: Document exists:', exists, 'Role:', role);
+            
+            if (!exists || role !== 'admin') {
+                console.log('❌ ensureAdmin: User is not admin, redirecting to main page');
+                window.location.href = '../';
+            } else {
+                console.log('✅ ensureAdmin: User is admin, allowing access');
+            }
+        }
+
+        async function showOrderDetails(orderId, order) {
+            // Remove existing modal if any
+            const existingModal = document.getElementById('order-details-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Fetch order items separately from Supabase
+            const { data: orderItems } = await supabase
+                .from(TABLES.order_items)
+                .select('*')
+                .eq('order_id', orderId);
+
+            // Handle customer info structure (same as pharmacy)
+            const customerName = order.customer_name || 'Unknown';
+            const customerPhone = order.customer_phone || 'Not provided';
+            const customerEmail = order.customer_email || 'Not provided';
+
+            // Handle Supabase timestamp objects properly
+            const orderDate = safeDateConversion(order.created_at).toLocaleString();
+
+            // Format order items
+            const items = orderItems && orderItems.length > 0 ? 
+                orderItems.map(item => 
+                    `${item.product_name} x${item.quantity} - ₱${(parseFloat(item.price) * item.quantity).toFixed(2)}`
+            ).join('<br>') : 'No items';
+
+            const details = `
+                <div id="order-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-emerald-500 to-blue-600 p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold">Order Details</h3>
+                                        <p class="text-emerald-100">#${orderId.slice(-6)}</p>
+                                    </div>
+                                </div>
+                                <button id="close-order-modal" class="text-white hover:text-emerald-200 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                            <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                                <!-- Order Information Card -->
+                                <div class="bg-gray-50 rounded-xl p-6">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-xl font-bold text-gray-900">Order Information</h4>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Status</span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStageColor(order.stage)}">
+                                                ${order.stage}
+                                            </span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Payment</span>
+                                            <span class="text-gray-900">${order.payment_method || order.cod ? 'COD' : 'Card'}</span>
+                                            ${order.cod ? '<span class="text-xs text-gray-500 ml-1">(Cash on Delivery)</span>' : ''}
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Total</span>
+                                            <span class="text-gray-900 font-semibold">₱${order.total ? order.total.toFixed(2) : '0.00'}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2">
+                                            <span class="font-medium text-gray-600">Order Date</span>
+                                            <span class="text-gray-900">${orderDate}</span>
+                                        </div>
+                                    </div>
+                            </div>
+
+                                <!-- Customer Information Card -->
+                                <div class="bg-gray-50 rounded-xl p-6">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-xl font-bold text-gray-900">Customer Information</h4>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Name</span>
+                                            <span class="text-gray-900">${customerName}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Phone</span>
+                                            <span class="text-gray-900">${customerPhone}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Email</span>
+                                            <span class="text-gray-900">${customerEmail}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2">
+                                            <span class="font-medium text-gray-600">User ID</span>
+                                            <span class="text-gray-900 font-mono text-sm">${order.userId || 'Unknown'}</span>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+
+                        </div>
+
+                            <!-- Items Ordered Section -->
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="text-xl font-bold text-gray-900">Items Ordered</h4>
+                                </div>
+                            <div class="space-y-3">
+                                ${orderItems && orderItems.length > 0 ? orderItems.map(item => `
+                                    <div class="bg-white rounded-lg p-4 border border-gray-200">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex-1">
+                                                <h5 class="font-medium text-gray-900">${item.product_name}</h5>
+                                                <p class="text-sm text-gray-600">Quantity: ${item.quantity}</p>
+                                                <p class="text-sm text-gray-600">Unit Price: ₱${parseFloat(item.price).toFixed(2)}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-semibold text-gray-900">₱${(parseFloat(item.price) * item.quantity).toFixed(2)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('') : '<div class="text-center py-8 text-gray-500">No items found</div>'}
+                            </div>
+                        </div>
+
+                        ${order.deliveryAddress ? `
+                            <!-- Delivery Address Section -->
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="text-xl font-bold text-gray-900">Delivery Address</h4>
+                                </div>
+                                <div class="bg-white rounded-lg p-4">
+                                    <p class="text-gray-900">${order.deliveryAddress}</p>
+                            </div>
+                        </div>
+                        ` : ''}
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                            <button id="close-order-modal-btn" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', details);
+            
+            // Add event listeners for modal close
+            const modal = document.getElementById('order-details-modal');
+            const closeBtn = document.getElementById('close-order-modal');
+            const closeBtnFooter = document.getElementById('close-order-modal-btn');
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    modal.remove();
+                });
+            }
+            
+            if (closeBtnFooter) {
+                closeBtnFooter.addEventListener('click', () => {
+                    modal.remove();
+                });
+            }
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        async function showUserDetails(userId, user = null) {
+            // Fetch user data if not provided
+            if (!user) {
+                const { data: userData, error } = await supabase
+                    .from(TABLES.users)
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+                
+                if (error) {
+                    console.error('Error fetching user details:', error);
+                    showError('Failed to load user details');
+                    return;
+                }
+                user = userData;
+            }
+            
+            // Get user's orders
+            const { data: ordersQuery } = await supabase.from(TABLES.orders).select('*').eq('userId', userId);
+            const orders = ordersQuery || [];
+
+            const totalOrders = orders.length;
+            const completedOrders = orders.filter(o => o.stage === 'Delivered').length;
+            const totalSpent = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+            const recentOrders = orders.slice(0, 5).map(o => {
+                const data = o;
+                return `
+                    <div class="flex justify-between items-center py-2 border-b last:border-0">
+                        <div>
+                            <div class="font-medium">#${o.id.slice(-6)}</div>
+                            <div class="text-sm text-gray-600">${data.stage} • ₱${data.total?.toLocaleString() || '0'}</div>
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            ${data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                        </div>
+                    </div>
+                `;
+            }).join('') || '<div class="text-gray-500">No orders yet</div>';
+
+            const details = `
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-hidden">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-emerald-500 to-blue-600 p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold">User Details</h3>
+                                        <p class="text-emerald-100">${user.name || 'Unnamed User'}</p>
+                                    </div>
+                                </div>
+                                <button onclick="this.closest('.fixed').remove()" class="text-white hover:text-emerald-200 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                            <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                                <!-- User Information Card -->
+                                <div class="bg-gray-50 rounded-xl p-6">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-xl font-bold text-gray-900">User Information</h4>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Name</span>
+                                            <span class="text-gray-900">${user.name || 'Not provided'}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Email</span>
+                                            <span class="text-gray-900">${user.email || 'Not provided'}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Role</span>
+                                            <span class="text-gray-900 capitalize">${user.role || 'user'}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">COD Status</span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.cod_unlocked ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                                ${user.cod_unlocked ? 'Enabled' : 'Disabled'}
+                                            </span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">Account Status</span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.disabled ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                                                ${user.disabled ? 'Disabled' : 'Active'}
+                                            </span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                            <span class="font-medium text-gray-600">User ID</span>
+                                            <span class="text-gray-900 font-mono text-sm">${userId}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2">
+                                            <span class="font-medium text-gray-600">Joined</span>
+                                            <span class="text-gray-900">${user.created_at ? safeDateConversion(user.created_at).toLocaleString() : 'Unknown'}</span>
+                                        </div>
+                                </div>
+                            </div>
+
+                                <!-- Order Statistics Card -->
+                                <div class="bg-gray-50 rounded-xl p-6">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                            </svg>
+                                </div>
+                                        <h4 class="text-xl font-bold text-gray-900">Order Statistics</h4>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="text-center p-4 bg-white rounded-lg">
+                                            <div class="text-2xl font-bold text-blue-600">${totalOrders}</div>
+                                            <div class="text-sm text-gray-600">Total Orders</div>
+                                        </div>
+                                        <div class="text-center p-4 bg-white rounded-lg">
+                                            <div class="text-2xl font-bold text-green-600">${completedOrders}</div>
+                                            <div class="text-sm text-gray-600">Completed</div>
+                                        </div>
+                                        <div class="text-center p-4 bg-white rounded-lg">
+                                            <div class="text-2xl font-bold text-purple-600">₱${totalSpent.toLocaleString()}</div>
+                                            <div class="text-sm text-gray-600">Total Spent</div>
+                                        </div>
+                                        <div class="text-center p-4 bg-white rounded-lg">
+                                            <div class="text-2xl font-bold text-orange-600">₱${totalOrders > 0 ? (totalSpent / totalOrders).toFixed(2) : '0'}</div>
+                                            <div class="text-sm text-gray-600">Average Order</div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+
+                            <!-- Recent Orders Section -->
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="text-xl font-bold text-gray-900">Recent Orders</h4>
+                                </div>
+                                <div class="bg-white rounded-lg p-4 max-h-60 overflow-y-auto">
+                                ${recentOrders}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                            <button onclick="this.closest('.fixed').remove()" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', details);
+        }
+
+        async function showPharmacyProducts(pharmacyId, pharmacy) {
+            // Get pharmacy's products
+            const { data: products } = await supabase.from(TABLES.products).select('*').eq('pharmacy_id', pharmacyId);
+
+            const totalProducts = products?.length || 0;
+            const activeProducts = products?.filter(p => !p.disabled).length || 0;
+            const outOfStock = products?.filter(p => (p.stock || 0) === 0).length || 0;
+
+            const productsList = products?.map(p => {
+                const isOutOfStock = (p.stock || 0) === 0;
+                const isDisabled = p.disabled;
+
+                return `
+                    <div class="flex items-center justify-between py-3 border-b last:border-0 ${isDisabled ? 'opacity-60' : ''}">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="admin-product-checkbox rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" data-product-id="${p.id}">
+                            <img src="${p.image_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=100&auto=format&fit=crop'}" class="w-12 h-12 rounded object-cover" alt="${p.name}">
+                            <div>
+                                <div class="font-medium ${isDisabled ? 'text-gray-500' : ''}">${p.name}</div>
+                                <div class="text-sm text-gray-600">
+                                    ₱${p.price?.toLocaleString() || '0'} • Stock: ${p.stock || 0}
+                                    ${isOutOfStock ? ' • <span class="text-red-500">Out of Stock</span>' : ''}
+                                    ${isDisabled ? ' • <span class="text-orange-500">Disabled</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <button data-product-id="${p.id}" data-action="toggle-product-status" class="px-3 py-1 text-sm rounded border ${isDisabled ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'}">
+                            ${isDisabled ? 'Enable' : 'Disable'}
+                        </button>
+                    </div>
+                `;
+            }).join('') || '<div class="text-gray-500 text-center py-4">No products found</div>';
+
+            const details = `
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-emerald-500 to-blue-600 p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold">Products</h3>
+                                        <p class="text-emerald-100">${pharmacy.name}</p>
+                                    </div>
+                                </div>
+                                <button onclick="this.closest('.fixed').remove()" class="text-white hover:text-emerald-200 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                            <!-- Summary Cards -->
+                            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                                <div class="bg-blue-50 rounded-xl p-6 text-center">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                        </svg>
+                            </div>
+                                    <div class="text-3xl font-bold text-blue-600">${totalProducts}</div>
+                                    <div class="text-sm text-blue-600 font-medium">Total Products</div>
+                            </div>
+                                <div class="bg-green-50 rounded-xl p-6 text-center">
+                                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="text-3xl font-bold text-green-600">${activeProducts}</div>
+                                    <div class="text-sm text-green-600 font-medium">Active Products</div>
+                                </div>
+                                <div class="bg-red-50 rounded-xl p-6 text-center">
+                                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="text-3xl font-bold text-red-600">${outOfStock}</div>
+                                    <div class="text-sm text-red-600 font-medium">Out of Stock</div>
+                            </div>
+                        </div>
+
+                            <!-- Product List Section -->
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="flex items-center justify-between mb-6">
+                                    <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="text-xl font-bold text-gray-900">Product List</h4>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <label class="flex items-center gap-2 text-sm">
+                                            <input type="checkbox" id="admin-select-all-products" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                                            <span>Select All</span>
+                                        </label>
+                                        <div id="admin-bulk-actions" class="hidden flex items-center gap-2">
+                                            <button id="admin-bulk-enable" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors">
+                                                Enable Selected
+                                            </button>
+                                            <button id="admin-bulk-disable" class="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg transition-colors">
+                                                Disable Selected
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-lg p-4 max-h-96 overflow-y-auto" id="pharmacy-products-list">
+                                ${productsList}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="bg-gray-50 px-6 py-4 flex justify-between">
+                            <div class="flex gap-3">
+                                <button onclick="hideAllPharmacyProducts('${pharmacyId}')" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                                    </svg>
+                                    Disable All
+                            </button>
+                                <button onclick="showAllPharmacyProducts('${pharmacyId}')" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Enable All
+                            </button>
+                            </div>
+                            <button onclick="this.closest('.fixed').remove()" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', details);
+
+            // Add event listener for individual product toggles
+            setTimeout(() => {
+                const productsList = document.getElementById('pharmacy-products-list');
+                if (productsList) {
+                    productsList.addEventListener('click', async (e) => {
+                        const btn = e.target.closest('button[data-product-id]');
+                        if (!btn) return;
+
+                        const { data: productRef } = await supabase.from(TABLES.products).select('*').eq('id', btn.dataset.productId).single();
+                        const productData = productRef;
+
+                        if (btn.dataset.action === 'toggle-product-status') {
+                            await supabase.from(TABLES.products).update({
+                                disabled: !productData.disabled,
+                                updatedAt: new Date()
+                            }).eq('id', btn.dataset.productId);
+
+                            // Refresh the modal
+                            const modal = btn.closest('.fixed');
+                            if (modal) {
+                                modal.remove();
+                                showPharmacyProducts(pharmacyId, pharmacy);
+                            }
+                        }
+                    });
+                }
+            }, 100);
+
+            // Setup bulk operations for admin modal
+            setupAdminBulkOperations(pharmacyId, pharmacy);
+        }
+
+        async function hidePharmacyProducts(pharmacyId) {
+            const { data: products, error } = await supabase
+                .from(TABLES.products)
+                .select('*')
+                .eq('pharmacy_id', pharmacyId);
+
+            if (error) {
+                console.error('Error fetching products:', error);
+                return;
+            }
+
+            const updatePromises = products.map(product =>
+                supabase
+                    .from(TABLES.products)
+                    .update({ disabled: true })
+                    .eq('id', product.id)
+            );
+
+            await Promise.all(updatePromises);
+            showSuccess('All products have been disabled.');
+        }
+
+        async function showAllPharmacyProducts(pharmacyId) {
+            const { data: products, error } = await supabase
+                .from(TABLES.products)
+                .select('*')
+                .eq('pharmacy_id', pharmacyId);
+
+            if (error) {
+                console.error('Error fetching products:', error);
+                return;
+            }
+
+            const updatePromises = products.map(product =>
+                supabase
+                    .from(TABLES.products)
+                    .update({ disabled: false })
+                    .eq('id', product.id)
+            );
+
+            await Promise.all(updatePromises);
+            showSuccess('All products have been enabled.');
+        }
+
+        // Make functions globally available for onclick handlers
+        window.hideAllPharmacyProducts = hidePharmacyProducts;
+        window.showAllPharmacyProducts = showAllPharmacyProducts;
+
+        // Test function to manually update badges
+        window.testAdminBadges = async () => {
+            console.log('Testing admin badges...');
+            await updateAdminOrderCounts();
+
+            // Force show a badge for testing
+            const testBadge = document.querySelector('.admin-order-count-badge');
+            if (testBadge) {
+                testBadge.textContent = '99';
+                testBadge.style.display = 'inline-flex';
+                console.log('Forced admin badge to show with count 99');
+            }
+        };
+
+        async function loadOverview() {
+            console.log('🚀 Loading admin overview...');
+            
+            const [usersResponse, pharmaciesResponse, ordersResponse, productsResponse] = await Promise.all([
+                supabase.from(TABLES.users).select('*'),
+                supabase.from(TABLES.pharmacies).select('*'),
+                supabase.from(TABLES.orders).select('*'),
+                supabase.from(TABLES.products).select('*')
+            ]);
+
+            // Handle transactions separately in case table doesn't exist
+            let transactionsResponse = { data: [] };
+            try {
+                transactionsResponse = await supabase.from('transactions').select('*');
+            } catch (error) {
+                console.log('⚠️ Transactions table not available:', error);
+                transactionsResponse = { data: [] };
+            }
+
+            const users = usersResponse.data || [];
+            const pharmacies = pharmaciesResponse.data || [];
+            const orders = ordersResponse.data || [];
+            const products = productsResponse.data || [];
+            const transactions = transactionsResponse.data || [];
+            
+            console.log('📊 Data loaded:', {
+                users: users.length,
+                pharmacies: pharmacies.length,
+                orders: orders.length,
+                products: products.length,
+                transactions: transactions.length
+            });
+
+            // Core user metrics
+            const activeUsers = users.filter(d => (d.role || 'user') === 'user' && !d.disabled).length;
+            const activePharmacies = pharmacies.filter(d => d.approved && !d.disabled).length;
+            const pendingPharmacies = pharmacies.filter(d => !d.approved).length;
+
+            // Financial metrics
+            const deliveredOrders = orders.filter(d => d.stage === 'Delivered');
+            const totalRevenue = deliveredOrders.reduce((s, d) => s + (d.total || 0), 0);
+            const totalCommission = transactions
+                .filter(t => t.type === 'cod_payment_credit' || t.type === 'card_payment_credit')
+                .reduce((s, t) => s + (t.commission || 0), 0);
+            const averageOrderValue = deliveredOrders.length > 0 ? totalRevenue / deliveredOrders.length : 0;
+
+            // Order metrics
+            const totalOrders = orders.length;
+            const pendingOrders = orders.filter(d => d.stage === 'Pending').length;
+            const confirmedOrders = orders.filter(d => d.stage === 'Confirmed').length;
+            const deliveredOrdersCount = deliveredOrders.length;
+            const declinedOrders = orders.filter(d => d.stage === 'Declined').length;
+
+            // Product metrics
+            const activeProducts = products.filter(d => !d.disabled && (d.stock || 0) > 0).length;
+            const outOfStockProducts = products.filter(d => !d.disabled && (d.stock || 0) === 0).length;
+            const disabledProducts = products.filter(d => d.disabled).length;
+            const totalProducts = products.length;
+
+            // Create hierarchical overview cards - most important first
+            const primaryCards = [
+                { 
+                    label: 'Total Revenue', 
+                    value: '₱' + totalRevenue.toLocaleString(), 
+                    subtitle: `${deliveredOrdersCount} delivered orders`,
+                    color: 'text-emerald-600',
+                    bgColor: 'bg-emerald-50',
+                    iconColor: 'text-emerald-600',
+                    priority: 'high',
+                    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>`
+                },
+                { 
+                    label: 'Commission Earned', 
+                    value: '₱' + totalCommission.toLocaleString(), 
+                    subtitle: '5% from all transactions',
+                    color: 'text-blue-600',
+                    bgColor: 'bg-blue-50',
+                    iconColor: 'text-blue-600',
+                    priority: 'high',
+                    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>`
+                },
+                { 
+                    label: 'Active Users', 
+                    value: activeUsers.toLocaleString(), 
+                    subtitle: 'Registered customers',
+                    color: 'text-purple-600',
+                    bgColor: 'bg-purple-50',
+                    iconColor: 'text-purple-600',
+                    priority: 'high',
+                    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>`
+                },
+                { 
+                    label: 'Active Pharmacies', 
+                    value: activePharmacies, 
+                    subtitle: `${pendingPharmacies} pending approval`,
+                    color: 'text-green-600',
+                    bgColor: 'bg-green-50',
+                    iconColor: 'text-green-600',
+                    priority: 'high',
+                    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>`
+                }
+            ];
+
+            const secondaryCards = [
+                { 
+                    label: 'Total Orders', 
+                    value: totalOrders.toLocaleString(), 
+                    subtitle: `${pendingOrders} pending, ${confirmedOrders} confirmed`,
+                    color: 'text-indigo-600',
+                    bgColor: 'bg-indigo-50',
+                    iconColor: 'text-indigo-600',
+                    priority: 'medium',
+                    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>`
+                },
+                { 
+                    label: 'Average Order Value', 
+                    value: '₱' + averageOrderValue.toFixed(0), 
+                    subtitle: 'Per delivered order',
+                    color: 'text-orange-600',
+                    bgColor: 'bg-orange-50',
+                    iconColor: 'text-orange-600',
+                    priority: 'medium',
+                    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>`
+                },
+                { 
+                    label: 'Active Products', 
+                    value: activeProducts.toLocaleString(), 
+                    subtitle: `${outOfStockProducts} out of stock`,
+                    color: 'text-cyan-600',
+                    bgColor: 'bg-cyan-50',
+                    iconColor: 'text-cyan-600',
+                    priority: 'medium',
+                    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>`
+                }
+            ];
+
+            // Combine cards with proper hierarchy
+            const cards = [...primaryCards, ...secondaryCards];
+
+            const wrap = document.getElementById('overview-cards');
+            console.log('🎯 Rendering overview cards:', cards.length, 'cards');
+            console.log('🎯 Cards data:', cards);
+            
+            if (wrap) {
+            wrap.innerHTML = cards.map(c => `
+                    <div class='bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-200 ${c.priority === 'high' ? 'ring-1 ring-gray-200' : ''}'>
+                        <div class='flex items-start justify-between mb-4'>
+                        <div class='p-3 ${c.bgColor} rounded-lg'>
+                            <div class='${c.iconColor}'>
+                                ${c.icon}
+                            </div>
+                        </div>
+                        <div class='text-right'>
+                            <div class='text-3xl font-bold ${c.color}'>${c.value}</div>
+                        </div>
+                    </div>
+                        <div class='space-y-1'>
+                            <div class='text-sm font-semibold text-gray-900'>${c.label}</div>
+                            <div class='text-xs text-gray-500'>${c.subtitle}</div>
+                        </div>
+                </div>
+            `).join('');
+                console.log('✅ Overview cards rendered successfully');
+            } else {
+                console.error('❌ Could not find overview-cards element');
+            }
+
+            // Load additional overview data
+            try {
+            await loadRecentActivities();
+            await loadAlerts();
+            } catch (error) {
+                console.error('Error loading additional overview data:', error);
+            }
+        }
+
+        async function loadRecentActivities() {
+            try {
+                // Get recent orders
+                const { data: orders } = await supabase.from(TABLES.orders).select('*').order('created_at', { ascending: false }).limit(5);
+                
+                // Get recent user registrations
+                const { data: users } = await supabase.from(TABLES.users).select('*').order('created_at', { ascending: false }).limit(3);
+                
+                // Get recent pharmacy registrations
+                const { data: pharmacies } = await supabase.from(TABLES.pharmacies).select('*').order('created_at', { ascending: false }).limit(3);
+
+                const activities = [];
+
+                // Add recent orders
+                orders?.forEach(order => {
+                    const customerName = order.customer_name || 'Unknown';
+                    activities.push({
+                        type: 'order',
+                        title: `New order from ${customerName}`,
+                        description: `Order #${order.id.slice(-6)} - ₱${order.total?.toFixed(2) || '0'}`,
+                        time: order.created_at,
+                        icon: 'M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
+                        color: 'text-blue-600',
+                        bgColor: 'bg-blue-100'
+                    });
+                });
+
+                // Add recent user registrations
+                users?.forEach(user => {
+                    if (user.role === 'user') {
+                        activities.push({
+                            type: 'user',
+                            title: `New user registered`,
+                            description: `${user.name || user.email || 'Unknown user'}`,
+                            time: user.created_at,
+                            icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+                            color: 'text-green-600',
+                            bgColor: 'bg-green-100'
+                        });
+                    }
+                });
+
+                // Add recent pharmacy registrations
+                pharmacies?.forEach(pharmacy => {
+                    activities.push({
+                        type: 'pharmacy',
+                        title: `New pharmacy registered`,
+                        description: `${pharmacy.name || 'Unknown pharmacy'}`,
+                        time: pharmacy.created_at,
+                        icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
+                        color: 'text-purple-600',
+                        bgColor: 'bg-purple-100'
+                    });
+                });
+
+                // Sort by time and take the most recent 8
+                activities.sort((a, b) => {
+                    const timeA = a.time?.seconds || 0;
+                    const timeB = b.time?.seconds || 0;
+                    return timeB - timeA;
+                });
+
+                const recentActivities = activities.slice(0, 8);
+
+                const container = document.getElementById('recent-activities');
+                if (recentActivities.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No recent activities</h3>
+                            <p class="mt-1 text-sm text-gray-500">Activities will appear here as they happen.</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = recentActivities.map(activity => `
+                        <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="w-8 h-8 ${activity.bgColor} rounded-full flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 ${activity.color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${activity.icon}"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900">${activity.title}</p>
+                                <p class="text-sm text-gray-600">${activity.description}</p>
+                                <p class="text-xs text-gray-500 mt-1">${activity.time ? formatRelativeTime(activity.time) : 'Unknown time'}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading recent activities:', error);
+                document.getElementById('recent-activities').innerHTML = `
+                    <div class="text-center py-8">
+                        <p class="text-sm text-red-600">Error loading activities</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadAlerts() {
+            try {
+                const alerts = [];
+
+                // Check for pending withdrawal requests
+                const { data: withdrawals } = await supabase
+                    .from('withdrawal_requests')
+                    .select('*')
+                    .eq('status', 'pending');
+                
+                if (withdrawals && withdrawals.length > 0) {
+                    alerts.push({
+                        type: 'warning',
+                        title: 'Pending Withdrawal Requests',
+                        description: `${withdrawals.length} withdrawal request${withdrawals.length > 1 ? 's' : ''} pending approval`,
+                        action: 'View Wallet Management',
+                        actionUrl: 'wallet'
+                    });
+                }
+
+                // Check for pending pharmacy approvals
+                const { data: pendingPharmacies } = await supabase
+                    .from(TABLES.pharmacies)
+                    .select('*')
+                    .eq('approved', false);
+                
+                if (pendingPharmacies && pendingPharmacies.length > 0) {
+                    alerts.push({
+                        type: 'info',
+                        title: 'Pending Pharmacy Approvals',
+                        description: `${pendingPharmacies.length} pharmacy${pendingPharmacies.length > 1 ? 'ies' : ''} waiting for approval`,
+                        action: 'View Pharmacies',
+                        actionUrl: 'pharmacies'
+                    });
+                }
+
+                // Check for low stock products
+                const { data: lowStockProducts } = await supabase
+                    .from(TABLES.products)
+                    .select('*')
+                    .lte('stock', 5);
+                
+                if (lowStockProducts && lowStockProducts.length > 0) {
+                    alerts.push({
+                        type: 'warning',
+                        title: 'Low Stock Alert',
+                        description: `${lowStockProducts.length} product${lowStockProducts.length > 1 ? 's' : ''} running low on stock`,
+                        action: 'View Products',
+                        actionUrl: 'pharmacies'
+                    });
+                }
+
+                // Check for recent system issues (mock data)
+                const systemAlerts = [
+                    {
+                        type: 'success',
+                        title: 'System Health',
+                        description: 'All systems operating normally',
+                        action: null,
+                        actionUrl: null
+                    }
+                ];
+
+                const allAlerts = [...alerts, ...systemAlerts];
+
+                const container = document.getElementById('alerts-container');
+                if (allAlerts.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-4">
+                            <p class="text-sm text-gray-500">No alerts at this time</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = allAlerts.map(alert => {
+                        const alertColors = {
+                            warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                            info: 'bg-blue-50 border-blue-200 text-blue-800',
+                            success: 'bg-green-50 border-green-200 text-green-800',
+                            error: 'bg-red-50 border-red-200 text-red-800'
+                        };
+
+                        const iconColors = {
+                            warning: 'text-yellow-600',
+                            info: 'text-blue-600',
+                            success: 'text-green-600',
+                            error: 'text-red-600'
+                        };
+
+                        return `
+                            <div class="flex items-start gap-3 p-4 border rounded-lg ${alertColors[alert.type] || alertColors.info}">
+                                <div class="w-5 h-5 ${iconColors[alert.type] || iconColors.info} flex-shrink-0 mt-0.5">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium">${alert.title}</h4>
+                                    <p class="text-sm mt-1">${alert.description}</p>
+                                    ${alert.action ? `
+                                        <button onclick="document.querySelector('[data-tab=\'${alert.actionUrl}\']').click()" class="text-sm font-medium underline hover:no-underline mt-2">
+                                            ${alert.action}
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                document.getElementById('alerts-container').innerHTML = `
+                    <div class="text-center py-4">
+                        <p class="text-sm text-red-600">Error loading alerts</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadUsers() {
+            const { data: snap } = await supabase.from(TABLES.users).select('*');
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            const currentUid = currentUser ? currentUser.id : null;
+            
+            // Filter out current user and only show regular users
+            allUsers = (snap || []).filter(d => {
+                    const u = d;
+                    return (u.role === 'user') && d.id !== currentUid;
+            });
+            
+            filteredUsers = [...allUsers];
+            filterUsers(); // Apply current search/filter settings
+        }
+
+        async function loadPharmacies() {
+            const { data: snap } = await supabase.from(TABLES.pharmacies).select('*');
+            allPharmacies = snap || [];
+            filteredPharmacies = [...allPharmacies];
+            filterPharmacies(); // Apply current search/filter settings
+        }
+
+        let currentAdminOrderStatus = 'all';
+        let allAdminOrders = [];
+        let adminOrderCounts = { all: 0, pending: 0, confirmed: 0, 'to-be-received': 0, delivered: 0, declined: 0 };
+        
+        // Search and filter variables
+        let allUsers = [];
+        let allPharmacies = [];
+        let filteredUsers = [];
+        let filteredPharmacies = [];
+        let currentUserSearch = '';
+        let currentUserFilter = 'all';
+        let currentPharmacySearch = '';
+        let currentPharmacyFilter = 'all';
+
+        function updateAdminOrderCounts() {
+            // Reset counts
+            adminOrderCounts = { all: 0, pending: 0, confirmed: 0, 'to-be-received': 0, delivered: 0, declined: 0 };
+
+            // Count orders by status
+            allAdminOrders.forEach(({ order }) => {
+                const status = order.stage.toLowerCase().replace(/\s+/g, '-');
+                if (status in adminOrderCounts) {
+                    adminOrderCounts[status]++;
+                }
+                adminOrderCounts.all++;
+            });
+
+            // Update tab badges
+            document.querySelectorAll('.admin-tab-button').forEach(tab => {
+                const tabId = tab.id.replace('tab-', '');
+                const badge = tab.querySelector('.admin-order-count-badge');
+
+                if (badge) {
+                    const count = adminOrderCounts[tabId] || 0;
+                    badge.textContent = count;
+                    // Hide badges with 0 count for cleaner professional look
+                    if (count > 0) {
+                        badge.style.display = 'inline-flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            });
+
+            console.log('Admin order counts:', adminOrderCounts);
+        }
+
+        // Handle user click events
+        async function handleUserClick(e) {
+            const btn = e.target.closest('button[data-uid]');
+            if (!btn) return;
+            
+            // Set loading state for toggle actions
+            if (btn.dataset.action === 'toggle-cod' || btn.dataset.action === 'toggle-disabled') {
+                setButtonLoading(btn, true, 'Updating...');
+            }
+            
+            try {
+                if (btn.dataset.action === 'toggle-disabled') {
+                    const currentDisabled = btn.dataset.disabled === 'true';
+                    const newDisabled = !currentDisabled;
+                    console.log('Toggling user disabled status:', { currentDisabled, newDisabled, uid: btn.dataset.uid });
+                    
+                    const { error } = await supabase.from(TABLES.users).update({ 
+                        disabled: newDisabled 
+                    }).eq('id', btn.dataset.uid);
+                    
+                    if (error) {
+                        console.error('Error updating user disabled status:', error);
+                        throw error;
+                    }
+                    
+                    showSuccess(`User ${newDisabled ? 'disabled' : 'enabled'} successfully!`);
+                } else if (btn.dataset.action === 'toggle-cod') {
+                    const currentCodUnlocked = btn.dataset.codUnlocked === 'true';
+                    const newCodUnlocked = !currentCodUnlocked;
+                    console.log('Toggling user COD status:', { currentCodUnlocked, newCodUnlocked, uid: btn.dataset.uid });
+                    
+                    const { error } = await supabase.from(TABLES.users).update({ 
+                        cod_unlocked: newCodUnlocked 
+                    }).eq('id', btn.dataset.uid);
+                    
+                    if (error) {
+                        console.error('Error updating user COD status:', error);
+                        throw error;
+                    }
+                    
+                    showSuccess(`COD access ${newCodUnlocked ? 'enabled' : 'disabled'} successfully!`);
+                } else if (btn.dataset.action === 'view-details') {
+                    console.log('View details clicked for user:', btn.dataset.uid);
+                    await showUserDetails(btn.dataset.uid);
+                    return; // Don't reload users for view details
+                }
+                
+                loadUsers(); // Reload to show updated status
+            } catch (error) {
+                console.error('Error updating user:', error);
+                showError(getProfessionalErrorMessage(error));
+            } finally {
+                if (btn.dataset.action === 'toggle-cod' || btn.dataset.action === 'toggle-disabled') {
+                    setButtonLoading(btn, false);
+                }
+            }
+        }
+
+
+        // Handle pharmacy click events
+        async function handlePharmacyClick(e) {
+            const btn = e.target.closest('button[data-id]');
+            if (!btn) return;
+            
+            // Set loading state for toggle actions
+            if (btn.dataset.action === 'toggle-approve' || btn.dataset.action === 'toggle-disabled') {
+                setButtonLoading(btn, true, 'Updating...');
+            }
+            
+            const { data: pharmacy, error } = await supabase
+                .from(TABLES.pharmacies)
+                .select('*')
+                .eq('id', btn.dataset.id)
+                .single();
+            
+            if (error || !pharmacy) {
+                console.error('Error fetching pharmacy:', error);
+                return;
+            }
+            
+            const data = pharmacy;
+            
+            try {
+                if (btn.dataset.action === 'view-products') {
+                    showPharmacyProducts(btn.dataset.id, data);
+                } else if (btn.dataset.action === 'toggle-approve') {
+                    const { error: updateError } = await supabase
+                        .from(TABLES.pharmacies)
+                        .update({ approved: !data.approved })
+                        .eq('id', btn.dataset.id);
+                    
+                    if (updateError) {
+                        console.error('Error updating pharmacy approval:', updateError);
+                        showError('Failed to update pharmacy approval');
+                        return;
+                    }
+                    
+                    showSuccess(`Pharmacy ${data.approved ? 'disapproved' : 'approved'} successfully`);
+                } else if (btn.dataset.action === 'toggle-disabled') {
+                    const newDisabledStatus = !data.disabled;
+                    const { error: updateError } = await supabase
+                        .from(TABLES.pharmacies)
+                        .update({ disabled: newDisabledStatus })
+                        .eq('id', btn.dataset.id);
+                    
+                    if (updateError) {
+                        console.error('Error updating pharmacy status:', updateError);
+                        showError('Failed to update pharmacy status');
+                        return;
+                    }
+
+                    // When disabling a pharmacy, hide all their products
+                    if (newDisabledStatus) {
+                        await hidePharmacyProducts(btn.dataset.id);
+                    }
+                }
+                loadPharmacies();
+            } catch (error) {
+                console.error('Error updating pharmacy:', error);
+                alert(getProfessionalErrorMessage(error));
+            } finally {
+                if (btn.dataset.action === 'toggle-approve' || btn.dataset.action === 'toggle-disabled') {
+                    setButtonLoading(btn, false);
+                }
+            }
+        }
+
+        // Handle order click events
+        async function handleOrderClick(e) {
+            const btn = e.target.closest('button[data-id]');
+            if (!btn) return;
+            
+            // Set loading state for order actions
+            if (btn.dataset.action === 'confirm' || btn.dataset.action === 'advance') {
+                setButtonLoading(btn, true, 'Processing...');
+            }
+            
+            try {
+                if (btn.dataset.action === 'view-details') {
+                    const { data: order } = await supabase
+                        .from(TABLES.orders)
+                        .select('*')
+                        .eq('id', btn.dataset.id)
+                        .single();
+                    if (order) showOrderDetails(btn.dataset.id, order);
+                } else if (btn.dataset.action === 'confirm') {
+                    const { error } = await supabase
+                        .from(TABLES.orders)
+                        .update({ 
+                            payment_status: 'Confirmed', 
+                            stage: 'Confirmed',
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', btn.dataset.id);
+                    if (error) throw error;
+                } else if (btn.dataset.action === 'advance') {
+                    const { data: order } = await supabase
+                        .from(TABLES.orders)
+                        .select('*')
+                        .eq('id', btn.dataset.id)
+                        .single();
+                    
+                    if (order) {
+                    const stages = ['Pending', 'Confirmed', 'To Be Received', 'Delivered'];
+                        const idx = Math.max(0, stages.indexOf(order.stage));
+                    const next = stages[Math.min(idx + 1, stages.length - 1)];
+                        
+                        const { error } = await supabase
+                            .from(TABLES.orders)
+                            .update({ 
+                                stage: next,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', btn.dataset.id);
+                        if (error) throw error;
+                    }
+                }
+                // Orders will be updated automatically via real-time listener
+            } catch (error) {
+                console.error('Error updating order:', error);
+                alert(getProfessionalErrorMessage(error));
+            } finally {
+                if (btn.dataset.action === 'confirm' || btn.dataset.action === 'advance') {
+                    setButtonLoading(btn, false);
+                }
+            }
+        }
+
+        function renderFilteredAdminOrders() {
+            const filteredOrders = currentAdminOrderStatus === 'all'
+                ? allAdminOrders
+                : allAdminOrders.filter(({ order }) => {
+                    const stage = order.stage.toLowerCase().replace(/\s+/g, '-');
+                    // Handle special case for declined tab (matches both 'declined' and 'cancelled')
+                    if (currentAdminOrderStatus === 'declined') {
+                        return stage === 'declined' || stage === 'cancelled';
+                    }
+                    return stage === currentAdminOrderStatus;
+                });
+
+            const el = document.getElementById('orders-list');
+            el.innerHTML = '';
+
+            if (filteredOrders.length === 0) {
+                el.innerHTML = `
+                    <div class="p-8 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No orders</h3>
+                        <p class="mt-1 text-sm text-gray-500">Orders will appear here when customers place them.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Add proper spacing container
+            el.className = 'space-y-4 p-6';
+
+            el.innerHTML = filteredOrders.map(({ order }) => {
+                const o = order;
+                
+                // Handle customer info structure (same as pharmacy)
+                const customerName = o.customer_name || 'Unknown';
+                const customerPhone = o.customer_phone || 'Not provided';
+                const customerEmail = o.customer_email || 'Not provided';
+                
+                const orderDate = safeDateConversion(o.created_at).toLocaleString();
+                const items = 'Order items'; // We'll need to fetch order items separately
+                
+                return `
+                    <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-200 mb-4">
+                        <!-- Order Header -->
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                    </svg>
+                                </div>
+          <div>
+                                    <h4 class="text-xl font-bold text-gray-900">Order #${o.id.slice(-6)}</h4>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStageColor(o.stage)}">
+                                        ${o.stage}
+                                    </span>
+          </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-500">Order Date</div>
+                                <div class="text-sm font-medium text-gray-900">${orderDate}</div>
+                            </div>
+                        </div>
+
+                        <!-- Order Content -->
+                        <div class="grid md:grid-cols-2 gap-6 mb-4">
+                            <!-- Left Column: Items & Payment -->
+                            <div class="space-y-4">
+          <div>
+                                    <h5 class="font-medium text-gray-900 mb-2">Items Ordered</h5>
+                                    <div class="bg-gray-50 rounded-lg p-3">
+                                        <p class="text-sm text-gray-700">${items}</p>
+          </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-blue-50 rounded-lg p-3">
+                                        <p class="text-xs font-medium text-blue-600 uppercase tracking-wide">Total Amount</p>
+                                        <p class="text-lg font-semibold text-blue-900">₱${o.total ? o.total.toFixed(2) : '0.00'}</p>
+                                    </div>
+                                    <div class="bg-green-50 rounded-lg p-3">
+                                        <p class="text-xs font-medium text-green-600 uppercase tracking-wide">Payment</p>
+                                        <p class="text-sm font-semibold text-green-900">${o.payment_method || o.cod ? 'COD' : 'Card'}</p>
+                                        ${o.cod ? '<span class="text-xs text-gray-500">(Cash on Delivery)</span>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Customer Info -->
+                            <div class="space-y-4">
+                                <div>
+                                    <h5 class="font-medium text-gray-900 mb-2">Customer Information</h5>
+                                    <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+                                        <p class="text-sm"><span class="font-medium">Name:</span> ${customerName}</p>
+                                        ${customerPhone !== 'Not provided' ? `<p class="text-sm"><span class="font-medium">Phone:</span> ${customerPhone}</p>` : ''}
+                                        ${customerEmail !== 'Not provided' ? `<p class="text-sm"><span class="font-medium">Email:</span> ${customerEmail}</p>` : ''}
+                                    </div>
+                                </div>
+                                
+                                ${o.deliveryAddress ? `
+                                <div>
+                                    <h5 class="font-medium text-gray-900 mb-2">Delivery Address</h5>
+                                    <div class="bg-gray-50 rounded-lg p-3">
+                                        <p class="text-sm text-gray-700">${o.deliveryAddress}</p>
+                                    </div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+                            <button data-id='${o.id}' data-action='view-details' class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                View Details
+                            </button>
+            ${o.stage === 'Pending' ? `
+                                <button data-id='${o.id}' data-action='confirm' class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Confirm Payment
+                                </button>
+            ` : ''}
+            ${getNextActionText(o.stage) ? `
+                                <button data-id='${o.id}' data-action='advance' class="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                    </svg>
+                                    ${getNextActionText(o.stage)}
+                                </button>
+            ` : ''}
+          </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Remove existing event listeners to prevent duplicates
+            el.removeEventListener('click', handleOrderClick);
+            
+            // Add new event listener
+            el.addEventListener('click', handleOrderClick);
+        }
+
+        // Function to get the next action text based on current stage
+        function getNextActionText(currentStage) {
+            const stageActions = {
+                'Pending': 'Confirm Payment',
+                'Confirmed': 'Mark as Shipped',
+                'To Be Received': 'Mark as Delivered',
+                'Delivered': null // No next action
+            };
+            return stageActions[currentStage] || null;
+        }
+
+        // Function to get color classes for order stages
+        function getStageColor(stage) {
+            const stageColors = {
+                'Pending': 'text-yellow-600 bg-yellow-50',
+                'Confirmed': 'text-blue-600 bg-blue-50',
+                'To Be Received': 'text-purple-600 bg-purple-50',
+                'Delivered': 'text-green-600 bg-green-50',
+                'Declined': 'text-red-600 bg-red-50',
+                'Cancelled': 'text-gray-600 bg-gray-50'
+            };
+            return stageColors[stage] || 'text-gray-600 bg-gray-50';
+        }
+
+        function loadOrders(status = 'all') {
+            currentAdminOrderStatus = status;
+
+            // Update tab styling
+            document.querySelectorAll('.admin-tab-button').forEach(tab => {
+                if (tab.id === `tab-${status}`) {
+                    tab.classList.add('active', 'border-emerald-500', 'text-emerald-600');
+                    tab.classList.remove('border-transparent', 'text-gray-500');
+                } else {
+                    tab.classList.remove('active', 'border-emerald-500', 'text-emerald-600');
+                    tab.classList.add('border-transparent', 'text-gray-500');
+                }
+            });
+
+            // Render filtered orders (client-side filtering)
+            renderFilteredAdminOrders();
+        }
+
+        // Load all orders and set up real-time updates
+        async function loadAllAdminOrders() {
+            // Show initial loading state
+            const el = document.getElementById('orders-list');
+            el.innerHTML = `
+                <div class="flex items-center justify-center p-12">
+                    <div class="text-center">
+                        <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-white bg-emerald-500 hover:bg-emerald-400 transition ease-in-out duration-150 cursor-not-allowed">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Loading orders...
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Load orders using Supabase
+            const { data: orders, error } = await supabase
+                .from(TABLES.orders)
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error loading orders:', error);
+                return;
+            }
+
+                allAdminOrders = [];
+
+                // Process all orders
+            orders?.forEach(order => {
+                    allAdminOrders.push({ order });
+                });
+
+                // Update counts and render
+                updateAdminOrderCounts();
+                renderFilteredAdminOrders();
+        }
+
+        async function loadCodSettings() {
+            const { data: settings } = await supabase
+                .from(TABLES.settings)
+                .select('*')
+                .eq('key', 'global')
+                .single();
+            
+            const form = document.getElementById('cod-form');
+            if (settings) {
+                form.codMinOrders.value = settings.codMinOrders ?? '';
+                form.codMinSpend.value = settings.codMinSpend ?? '';
+                form.codMaxLimit.value = settings.codMaxLimit ?? '';
+            }
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = Object.fromEntries(new FormData(form).entries());
+                
+                const { error } = await supabase
+                    .from(TABLES.settings)
+                    .upsert({
+                        key: 'global',
+                    codMinOrders: Number(data.codMinOrders || 0),
+                    codMinSpend: Number(data.codMinSpend || 0),
+                        codMaxLimit: Number(data.codMaxLimit || 0),
+                        updated_at: new Date().toISOString()
+                    });
+                
+                if (error) {
+                    console.error('Error saving COD settings:', error);
+                    alert('Error saving settings');
+                } else {
+                    alert('COD settings saved successfully');
+                }
+            });
+        }
+
+        // Admin order status tab event listeners
+        document.getElementById('admin-order-status-tabs').addEventListener('click', async (e) => {
+            const tab = e.target.closest('.admin-tab-button');
+            if (tab) {
+                const status = tab.id.replace('tab-', '');
+                await loadOrders(status);
+            }
+        });
+
+        document.getElementById('logout').addEventListener('click', logout);
+
+        // Wallet management functionality
+        async function loadWithdrawalRequests() {
+            try {
+                const { data: requests, error } = await supabase
+                    .from('withdrawal_requests')
+                    .select('*')
+                    .eq('status', 'pending')
+                    .order('requested_at', { ascending: false });
+
+                const requestsList = document.getElementById('withdrawal-requests-list');
+
+                if (error) {
+                    console.error('Error loading withdrawal requests:', error);
+                    requestsList.innerHTML = '<p class="text-red-500 text-center py-4">Error loading requests</p>';
+                    return;
+                }
+
+                if (!requests || requests.length === 0) {
+                    requestsList.innerHTML = '<p class="text-gray-500 text-center py-4">No pending withdrawal requests</p>';
+                    return;
+                }
+
+                requestsList.innerHTML = requests.map(request => {
+                    // Handle different data structures and provide fallbacks
+                    const pharmacyId = request.pharmacy_id || request.pharmacyId || 'Unknown';
+                    const amount = request.amount || 0;
+                    const accountDetails = request.account_details || {};
+                    const paymentMethod = request.payment_method || 'Unknown';
+                    const requestedAt = request.requested_at || request.requestedAt || new Date().toISOString();
+                    
+                    // Get payment method display name and icon
+                    let methodDisplay = '';
+                    let methodIcon = '';
+                    let methodColor = '';
+                    
+                    if (paymentMethod === 'gcash') {
+                        methodDisplay = 'GCash';
+                        methodIcon = '💚';
+                        methodColor = 'emerald';
+                    } else if (paymentMethod === 'paymaya') {
+                        methodDisplay = 'PayMaya';
+                        methodIcon = '💙';
+                        methodColor = 'blue';
+                    } else if (paymentMethod === 'bank_transfer') {
+                        methodDisplay = 'Bank Transfer';
+                        methodIcon = '🏦';
+                        methodColor = 'indigo';
+                    } else {
+                        methodDisplay = paymentMethod.toUpperCase();
+                        methodIcon = '💳';
+                        methodColor = 'gray';
+                    }
+                    
+                    // Extract account details based on payment method
+                    let accountInfo = '';
+                    if (paymentMethod === 'gcash' || paymentMethod === 'paymaya') {
+                        accountInfo = `
+                            <div class="bg-gray-50 rounded-lg p-3 mt-3">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-700">Account Details</span>
+                            </div>
+                                <div class="space-y-1">
+                                    <p class="text-sm text-gray-600"><span class="font-medium">Mobile:</span> ${accountDetails.mobileNumber || 'N/A'}</p>
+                                    <p class="text-sm text-gray-600"><span class="font-medium">Name:</span> ${accountDetails.accountName || 'N/A'}</p>
+                            </div>
+                        </div>
+                        `;
+                    } else if (paymentMethod === 'bank_transfer') {
+                        accountInfo = `
+                            <div class="bg-gray-50 rounded-lg p-3 mt-3">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-700">Bank Details</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="text-sm text-gray-600"><span class="font-medium">Bank:</span> ${accountDetails.bankName || 'N/A'}</p>
+                                    <p class="text-sm text-gray-600"><span class="font-medium">Account:</span> ${accountDetails.accountNumber || 'N/A'}</p>
+                                    <p class="text-sm text-gray-600"><span class="font-medium">Name:</span> ${accountDetails.accountName || 'N/A'}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    return `
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                                        ${pharmacyId.toString().slice(-2)}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Pharmacy #${pharmacyId.toString().slice(-8)}</h4>
+                                        <p class="text-sm text-gray-500">Requested ${new Date(requestedAt).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
+                                    Pending Review
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="text-sm font-medium text-emerald-700">Amount</span>
+                                    </div>
+                                    <p class="text-2xl font-bold text-emerald-900">₱${amount.toFixed(2)}</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-lg">${methodIcon}</span>
+                                        <span class="text-sm font-medium text-blue-700">Payment Method</span>
+                                    </div>
+                                    <p class="text-lg font-semibold text-blue-900">${methodDisplay}</p>
+                                </div>
+                            </div>
+                            
+                            ${accountInfo}
+                            
+                            <div class="flex gap-3 mt-6">
+                                <button onclick="approveWithdrawal('${request.id}', '${pharmacyId}', ${amount})" 
+                                    class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-200 font-medium">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Approve Withdrawal
+                            </button>
+                                <button onclick="rejectWithdrawal('${request.id}', '${pharmacyId}', ${amount})" 
+                                    class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all duration-200 font-medium">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    Reject Withdrawal
+                            </button>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading withdrawal requests:', error);
+            }
+        }
+
+        async function loadPharmacyWallets() {
+            try {
+                const { data: pharmacies, error } = await supabase
+                    .from(TABLES.pharmacies)
+                    .select('*');
+
+                const walletsList = document.getElementById('pharmacy-wallets-list');
+
+                if (error) {
+                    console.error('Error loading pharmacies:', error);
+                    walletsList.innerHTML = '<p class="text-red-500 text-center py-4">Error loading pharmacies</p>';
+                    return;
+                }
+
+                if (!pharmacies || pharmacies.length === 0) {
+                    walletsList.innerHTML = '<p class="text-gray-500 text-center py-4">No pharmacies found</p>';
+                    return;
+                }
+
+                // Calculate total balances
+                const totalAvailable = pharmacies.reduce((sum, p) => sum + (p.wallet_balance || 0), 0);
+                const totalPending = pharmacies.reduce((sum, p) => sum + (p.pending_balance || 0), 0);
+
+                walletsList.innerHTML = `
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-emerald-100 text-sm font-medium">Total Available</p>
+                                    <p class="text-3xl font-bold">₱${totalAvailable.toFixed(2)}</p>
+                        </div>
+                                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                        </div>
+                        </div>
+                    </div>
+                        
+                        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-blue-100 text-sm font-medium">Total Pending</p>
+                                    <p class="text-3xl font-bold">₱${totalPending.toFixed(2)}</p>
+                                </div>
+                                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pharmacy List -->
+                    <div class="space-y-4">
+                        ${pharmacies.map(pharmacy => {
+                            const availableBalance = pharmacy.wallet_balance || 0;
+                            const pendingBalance = pharmacy.pending_balance || 0;
+                            const totalBalance = availableBalance + pendingBalance;
+                            
+                            // Get pharmacy name and email
+                            const pharmacyName = pharmacy.name || 'Unknown Pharmacy';
+                            const pharmacyEmail = pharmacy.email || 'No email provided';
+                            
+                            // Determine balance status
+                            let balanceStatus = '';
+                            let statusColor = '';
+                            if (totalBalance > 1000) {
+                                balanceStatus = 'High Balance';
+                                statusColor = 'emerald';
+                            } else if (totalBalance > 100) {
+                                balanceStatus = 'Normal';
+                                statusColor = 'blue';
+                            } else {
+                                balanceStatus = 'Low Balance';
+                                statusColor = 'orange';
+                            }
+                            
+                            return `
+                                <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-200">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                                                ${pharmacyName.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <h4 class="font-semibold text-gray-900 text-lg">${pharmacyName}</h4>
+                                                <p class="text-sm text-gray-500">${pharmacyEmail}</p>
+                                            </div>
+                                        </div>
+                                        <span class="px-3 py-1 bg-${statusColor}-100 text-${statusColor}-800 text-sm font-medium rounded-full">
+                                            ${balanceStatus}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg p-4">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span class="text-sm font-medium text-emerald-700">Available</span>
+                                            </div>
+                                            <p class="text-xl font-bold text-emerald-900">₱${availableBalance.toFixed(2)}</p>
+                                        </div>
+                                        
+                                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span class="text-sm font-medium text-blue-700">Pending</span>
+                                            </div>
+                                            <p class="text-xl font-bold text-blue-900">₱${pendingBalance.toFixed(2)}</p>
+                                        </div>
+                                        
+                                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                                </svg>
+                                                <span class="text-sm font-medium text-purple-700">Total</span>
+                                            </div>
+                                            <p class="text-xl font-bold text-purple-900">₱${totalBalance.toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading pharmacy wallets:', error);
+            }
+        }
+
+        async function approveWithdrawal(requestId, pharmacyId, amount) {
+            if (!confirm(`Approve withdrawal of ₱${amount.toFixed(2)}?`)) return;
+
+            // Find the approve button and set loading state
+            const approveButton = document.querySelector(`button[onclick="approveWithdrawal('${requestId}', '${pharmacyId}', ${amount})"]`);
+            setButtonLoading(approveButton, true, 'Approving...');
+
+            try {
+                // Update withdrawal request status
+                const { error: updateRequestError } = await supabase
+                    .from('withdrawal_requests')
+                    .update({
+                        status: 'approved'
+                    })
+                    .eq('id', requestId);
+                
+                if (updateRequestError) throw updateRequestError;
+
+                // Update pharmacy balance - try both user_id and id fields
+                const { data: pharmacy, error: pharmacyError } = await supabase
+                    .from(TABLES.pharmacies)
+                    .select('*')
+                    .or(`user_id.eq.${pharmacyId},id.eq.${pharmacyId}`)
+                    .single();
+
+                if (pharmacyError) {
+                    console.warn('Could not find pharmacy record:', pharmacyError);
+                } else if (pharmacy) {
+                    const currentPending = pharmacy.pending_balance || 0;
+                    const { error: updatePharmacyError } = await supabase
+                        .from(TABLES.pharmacies)
+                        .update({
+                            pending_balance: Math.max(0, currentPending - amount),
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', pharmacy.id);
+                    
+                    if (updatePharmacyError) {
+                        console.warn('Could not update pharmacy balance:', updatePharmacyError);
+                    }
+                }
+
+                // Update the specific withdrawal transaction from pending to completed
+                try {
+                    // First, get the specific transaction ID that matches the withdrawal request
+                    const { data: withdrawalRequest, error: requestError } = await supabase
+                        .from('withdrawal_requests')
+                        .select('*')
+                        .eq('id', requestId)
+                        .single();
+                    
+                    if (requestError) {
+                        console.warn('Could not find withdrawal request:', requestError);
+                        return;
+                    }
+                    
+                    // Update the transaction that was created for this specific withdrawal request
+                    const { error: transactionError } = await supabase
+                        .from('transactions')
+                        .update({
+                            status: 'completed',
+                            description: `Withdrawal approved by admin`,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('pharmacy_id', pharmacyId)
+                        .eq('type', 'withdrawal_request')
+                        .eq('amount', amount)
+                        .eq('status', 'pending')
+                        .gte('created_at', withdrawalRequest.requested_at) // Only transactions created after the request
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    
+                    if (transactionError) {
+                        console.warn('Could not update transaction:', transactionError);
+                    } else {
+                        console.log('Transaction status updated to completed');
+                    }
+                } catch (transactionError) {
+                    console.warn('Transaction update not available:', transactionError);
+                }
+
+                alert('Withdrawal approved successfully');
+                await loadWithdrawalRequests();
+                await loadPharmacyWallets();
+            } catch (error) {
+                console.error('Error approving withdrawal:', error);
+                alert(getProfessionalErrorMessage(error));
+            } finally {
+                setButtonLoading(approveButton, false);
+            }
+        }
+
+        async function rejectWithdrawal(requestId, pharmacyId, amount) {
+            if (!confirm(`Reject withdrawal of ₱${amount.toFixed(2)}?`)) return;
+
+            // Find the reject button and set loading state
+            const rejectButton = document.querySelector(`button[onclick="rejectWithdrawal('${requestId}', '${pharmacyId}', ${amount})"]`);
+            setButtonLoading(rejectButton, true, 'Rejecting...');
+
+            try {
+                // Update withdrawal request status
+                const { error: updateRequestError } = await supabase
+                    .from('withdrawal_requests')
+                    .update({
+                        status: 'rejected'
+                    })
+                    .eq('id', requestId);
+                
+                if (updateRequestError) throw updateRequestError;
+
+                // Return amount to pharmacy wallet - try both user_id and id fields
+                const { data: pharmacy, error: pharmacyError } = await supabase
+                    .from(TABLES.pharmacies)
+                    .select('*')
+                    .or(`user_id.eq.${pharmacyId},id.eq.${pharmacyId}`)
+                    .single();
+
+                if (pharmacyError) {
+                    console.warn('Could not find pharmacy record:', pharmacyError);
+                } else if (pharmacy) {
+                    const currentWallet = pharmacy.wallet_balance || 0;
+                    const currentPending = pharmacy.pending_balance || 0;
+
+                    const { error: updatePharmacyError } = await supabase
+                        .from(TABLES.pharmacies)
+                        .update({
+                            wallet_balance: currentWallet + amount,
+                            pending_balance: Math.max(0, currentPending - amount),
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', pharmacy.id);
+                    
+                    if (updatePharmacyError) {
+                        console.warn('Could not update pharmacy balance:', updatePharmacyError);
+                    }
+                }
+
+                // Update the specific withdrawal transaction from pending to rejected
+                try {
+                    // First, get the specific transaction ID that matches the withdrawal request
+                    const { data: withdrawalRequest, error: requestError } = await supabase
+                        .from('withdrawal_requests')
+                        .select('*')
+                        .eq('id', requestId)
+                        .single();
+                    
+                    if (requestError) {
+                        console.warn('Could not find withdrawal request:', requestError);
+                        return;
+                    }
+                    
+                    // Update the transaction that was created for this specific withdrawal request
+                    const { error: transactionError } = await supabase
+                        .from('transactions')
+                        .update({
+                            status: 'rejected',
+                            description: `Withdrawal rejected by admin - funds returned`,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('pharmacy_id', pharmacyId)
+                        .eq('type', 'withdrawal_request')
+                        .eq('amount', amount)
+                        .eq('status', 'pending')
+                        .gte('created_at', withdrawalRequest.requested_at) // Only transactions created after the request
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    
+                    if (transactionError) {
+                        console.warn('Could not update transaction:', transactionError);
+                    } else {
+                        console.log('Transaction status updated to rejected');
+                    }
+                } catch (transactionError) {
+                    console.warn('Transaction update not available:', transactionError);
+                }
+
+                alert('Withdrawal rejected and amount returned to wallet');
+                await loadWithdrawalRequests();
+                await loadPharmacyWallets();
+            } catch (error) {
+                console.error('Error rejecting withdrawal:', error);
+                alert(getProfessionalErrorMessage(error));
+            } finally {
+                setButtonLoading(rejectButton, false);
+            }
+        }
+
+        // Make functions global for onclick handlers
+        window.approveWithdrawal = approveWithdrawal;
+        window.rejectWithdrawal = rejectWithdrawal;
+
+        // Update tab switching to load wallet data
+        tabs.forEach(btn => btn.addEventListener('click', async () => {
+            // Remove active styling from all tabs
+            tabs.forEach(b => {
+                b.classList.remove('bg-gradient-to-r', 'from-emerald-500', 'to-blue-600', 'text-white', 'shadow-sm');
+                b.classList.add('text-gray-700');
+            });
+            
+            // Add active styling to clicked tab
+            btn.classList.remove('text-gray-700');
+            btn.classList.add('bg-gradient-to-r', 'from-emerald-500', 'to-blue-600', 'text-white', 'shadow-sm');
+            
+            // Show/hide panels
+            Object.values(panels).forEach(p => p.classList.add('hidden'));
+            panels[btn.dataset.tab].classList.remove('hidden');
+
+            // Load wallet data when wallet tab is selected
+            if (btn.dataset.tab === 'wallet') {
+                await Promise.all([loadWithdrawalRequests(), loadPharmacyWallets()]);
+            }
+        }));
+
+        // Function to check if user account is disabled
+        async function checkAccountStatus(user) {
+            if (!user) return false;
+            
+            try {
+                const { data: userDoc, error } = await supabase
+                    .from(TABLES.users)
+                    .select('*')
+                    .eq('uid', user.id)
+                    .single();
+                
+                if (userDoc && userDoc.disabled === true) {
+                    console.log('🚫 Account is disabled, clearing all auth data and redirecting');
+                    
+                    // Clear all authentication data
+                    await supabase.auth.signOut();
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Clear any cached data
+                    try {
+                        const { clearImageCache } = await import('../js/imageCache.js');
+                        clearImageCache();
+                    } catch (error) {
+                        console.warn('Could not clear image cache:', error);
+                    }
+                    
+                    console.log('✅ All auth data cleared, redirecting to disabled page');
+                    window.location.href = '../disabled/';
+                    return true; // Account is disabled
+                }
+            } catch (error) {
+                console.error('❌ Error checking account status:', error);
+            }
+            return false; // Account is not disabled
+        }
+
+        onAuthStateChanged(async (user) => {
+            if (!user) { 
+                showLoadingModal('Please log in to access admin panel');
+                setTimeout(() => {
+                    window.location.href = '../login/';
+                }, 1500);
+                return; 
+            }
+            
+            // Check if account is disabled
+            const isDisabled = await checkAccountStatus(user);
+            if (isDisabled) {
+                return; // Will redirect to disabled page
+            }
+            
+            // Small delay to ensure localStorage is properly set
+            await new Promise(resolve => setTimeout(resolve, 100));
+            await ensureAdmin(user);
+            await Promise.all([loadOverview(), loadUsers(), loadPharmacies(), loadCodSettings()]);
+            loadAllAdminOrders();
+            
+            // Setup search and filter functionality
+            setupSearchAndFilterListeners();
+            
+            // Periodic check for disabled accounts (every 30 seconds)
+            setInterval(async () => {
+                const { data: { user: currentUser } } = await supabase.auth.getUser();
+                if (currentUser) {
+                    console.log('🔄 Periodic check: Checking account status for', currentUser.email);
+                    await checkAccountStatus(currentUser);
+                }
+            }, 30000); // Check every 30 seconds
+        });
+
+        // Admin bulk operations functionality
+        function setupAdminBulkOperations(pharmacyId, pharmacy) {
+            const selectAllCheckbox = document.getElementById('admin-select-all-products');
+            const productCheckboxes = document.querySelectorAll('.admin-product-checkbox');
+            const bulkActions = document.getElementById('admin-bulk-actions');
+            
+            if (!selectAllCheckbox || !bulkActions) return;
+            
+            // Select all functionality
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                productCheckboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                updateAdminBulkActionsVisibility();
+            });
+            
+            // Individual checkbox functionality
+            productCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateAdminBulkActionsVisibility();
+                    updateAdminSelectAllState();
+                });
+            });
+            
+            function updateAdminBulkActionsVisibility() {
+                const checkedBoxes = document.querySelectorAll('.admin-product-checkbox:checked');
+                if (checkedBoxes.length > 0) {
+                    bulkActions.classList.remove('hidden');
+                } else {
+                    bulkActions.classList.add('hidden');
+                }
+            }
+            
+            function updateAdminSelectAllState() {
+                const checkedBoxes = document.querySelectorAll('.admin-product-checkbox:checked');
+                const totalBoxes = productCheckboxes.length;
+                
+                if (checkedBoxes.length === 0) {
+                    selectAllCheckbox.indeterminate = false;
+                    selectAllCheckbox.checked = false;
+                } else if (checkedBoxes.length === totalBoxes) {
+                    selectAllCheckbox.indeterminate = false;
+                    selectAllCheckbox.checked = true;
+                } else {
+                    selectAllCheckbox.indeterminate = true;
+                    selectAllCheckbox.checked = false;
+                }
+            }
+            
+            // Bulk action buttons
+            const bulkEnableBtn = document.getElementById('admin-bulk-enable');
+            const bulkDisableBtn = document.getElementById('admin-bulk-disable');
+            
+            if (bulkEnableBtn) {
+                bulkEnableBtn.addEventListener('click', () => adminBulkEnableProducts(pharmacyId, pharmacy));
+            }
+            if (bulkDisableBtn) {
+                bulkDisableBtn.addEventListener('click', () => adminBulkDisableProducts(pharmacyId, pharmacy));
+            }
+        }
+        
+        // Admin bulk operations functions
+        async function adminBulkEnableProducts(pharmacyId, pharmacy) {
+            const selectedIds = getAdminSelectedProductIds();
+            if (selectedIds.length === 0) return;
+            
+            if (confirm(`Are you sure you want to enable ${selectedIds.length} selected product(s)?`)) {
+                try {
+                    const { error } = await supabase
+                        .from(TABLES.products)
+                        .update({ 
+                            disabled: false,
+                            updated_at: new Date().toISOString()
+                        })
+                        .in('id', selectedIds);
+                    
+                    if (error) throw error;
+                    
+                    showSuccess(`${selectedIds.length} product(s) enabled successfully!`);
+                    // Refresh the modal
+                    const modal = document.querySelector('.fixed');
+                    if (modal) {
+                        modal.remove();
+                        showPharmacyProducts(pharmacyId, pharmacy);
+                    }
+                } catch (error) {
+                    console.error('Error enabling products:', error);
+                    showError('Failed to enable products. Please try again.');
+                }
+            }
+        }
+        
+        async function adminBulkDisableProducts(pharmacyId, pharmacy) {
+            const selectedIds = getAdminSelectedProductIds();
+            if (selectedIds.length === 0) return;
+            
+            if (confirm(`Are you sure you want to disable ${selectedIds.length} selected product(s)?`)) {
+                try {
+                    const { error } = await supabase
+                        .from(TABLES.products)
+                        .update({ 
+                            disabled: true,
+                            updated_at: new Date().toISOString()
+                        })
+                        .in('id', selectedIds);
+                    
+                    if (error) throw error;
+                    
+                    showSuccess(`${selectedIds.length} product(s) disabled successfully!`);
+                    // Refresh the modal
+                    const modal = document.querySelector('.fixed');
+                    if (modal) {
+                        modal.remove();
+                        showPharmacyProducts(pharmacyId, pharmacy);
+                    }
+                } catch (error) {
+                    console.error('Error disabling products:', error);
+                    showError('Failed to disable products. Please try again.');
+                }
+            }
+        }
+        
+        function getAdminSelectedProductIds() {
+            const checkedBoxes = document.querySelectorAll('.admin-product-checkbox:checked');
+            return Array.from(checkedBoxes).map(checkbox => checkbox.dataset.productId);
+        }
+
+        // ==================== SEARCH AND FILTER FUNCTIONS ====================
+        
+        // User search and filter functions
+        function filterUsers() {
+            let filtered = [...allUsers];
+            
+            // Apply search filter
+            if (currentUserSearch.trim()) {
+                const searchTerm = currentUserSearch.toLowerCase().trim();
+                filtered = filtered.filter(user => 
+                    (user.name && user.name.toLowerCase().includes(searchTerm)) ||
+                    (user.email && user.email.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            // Apply status filter
+            if (currentUserFilter !== 'all') {
+                filtered = filtered.filter(user => {
+                    if (currentUserFilter === 'active') return !user.disabled;
+                    if (currentUserFilter === 'disabled') return user.disabled;
+                    return true;
+                });
+            }
+            
+            filteredUsers = filtered;
+            renderUsers();
+        }
+        
+        function renderUsers() {
+            const el = document.getElementById('users-list');
+            if (filteredUsers.length === 0) {
+                el.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+                        <p class="text-gray-500">Try adjusting your search or filter criteria.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            el.innerHTML = filteredUsers.map(u => `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                ${(u.name || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">${u.name || 'Unnamed User'}</h3>
+                                <p class="text-gray-600">${u.email || 'No email'}</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${u.disabled ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                                        ${u.disabled ? 'Disabled' : 'Active'}
+                                    </span>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${u.cod_unlocked ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
+                                        COD ${u.cod_unlocked ? 'Enabled' : 'Disabled'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button data-uid='${u.id}' data-action='view-details' class='flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors'>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                View Details
+                            </button>
+                            <button data-uid='${u.id}' data-action='toggle-cod' data-cod-unlocked='${u.cod_unlocked || false}' class='flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors'>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                                ${u.cod_unlocked ? 'Disable COD' : 'Enable COD'}
+                            </button>
+                            <button data-uid='${u.id}' data-action='toggle-disabled' data-disabled='${u.disabled || false}' class='flex items-center gap-2 px-4 py-2 ${u.disabled ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'} rounded-lg text-sm font-medium transition-colors'>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                                </svg>
+                                ${u.disabled ? 'Enable Account' : 'Disable Account'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Re-add event listeners
+            el.addEventListener('click', handleUserClick);
+        }
+        
+        // Pharmacy search and filter functions
+        function filterPharmacies() {
+            let filtered = [...allPharmacies];
+            
+            // Apply search filter
+            if (currentPharmacySearch.trim()) {
+                const searchTerm = currentPharmacySearch.toLowerCase().trim();
+                filtered = filtered.filter(pharmacy => 
+                    (pharmacy.name && pharmacy.name.toLowerCase().includes(searchTerm)) ||
+                    (pharmacy.email && pharmacy.email.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            // Apply status filter
+            if (currentPharmacyFilter !== 'all') {
+                filtered = filtered.filter(pharmacy => {
+                    if (currentPharmacyFilter === 'active') return !pharmacy.disabled;
+                    if (currentPharmacyFilter === 'disabled') return pharmacy.disabled;
+                    if (currentPharmacyFilter === 'approved') return pharmacy.approved;
+                    if (currentPharmacyFilter === 'pending') return !pharmacy.approved;
+                    return true;
+                });
+            }
+            
+            filteredPharmacies = filtered;
+            renderPharmacies();
+        }
+        
+        function renderPharmacies() {
+            const el = document.getElementById('pharmacies-list');
+            if (filteredPharmacies.length === 0) {
+                el.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No pharmacies found</h3>
+                        <p class="text-gray-500">Try adjusting your search or filter criteria.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            el.innerHTML = filteredPharmacies.map(d => {
+                const p = d;
+                return `
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                    ${(p.name || 'P').charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">${p.name || 'Unnamed Pharmacy'}</h3>
+                                    <p class="text-gray-600">${p.email || 'No email'}</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${p.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                            ${p.approved ? 'Approved' : 'Pending'}
+                                        </span>
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${p.disabled ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                                            ${p.disabled ? 'Disabled' : 'Active'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button data-id='${d.id}' data-action='view-products' class='flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors'>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                    View Products
+                                </button>
+                                <button data-id='${d.id}' data-action='toggle-approve' data-approved='${p.approved || false}' class='flex items-center gap-2 px-4 py-2 ${p.approved ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'} rounded-lg text-sm font-medium transition-colors'>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    ${p.approved ? 'Revoke Approval' : 'Approve'}
+                                </button>
+                                <button data-id='${d.id}' data-action='toggle-disabled' data-disabled='${p.disabled || false}' class='flex items-center gap-2 px-4 py-2 ${p.disabled ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'} rounded-lg text-sm font-medium transition-colors'>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                                    </svg>
+                                    ${p.disabled ? 'Enable Account' : 'Disable Account'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Re-add event listeners
+            el.addEventListener('click', handlePharmacyClick);
+        }
+        
+        // Event listeners for search and filter
+        function setupSearchAndFilterListeners() {
+            // User search and filter
+            const userSearchInput = document.getElementById('user-search-input');
+            const userStatusFilter = document.getElementById('user-status-filter');
+            const clearUserFilters = document.getElementById('clear-user-filters');
+            
+            if (userSearchInput) {
+                userSearchInput.addEventListener('input', (e) => {
+                    currentUserSearch = e.target.value;
+                    filterUsers();
+                });
+            }
+            
+            if (userStatusFilter) {
+                userStatusFilter.addEventListener('change', (e) => {
+                    currentUserFilter = e.target.value;
+                    filterUsers();
+                });
+            }
+            
+            if (clearUserFilters) {
+                clearUserFilters.addEventListener('click', () => {
+                    currentUserSearch = '';
+                    currentUserFilter = 'all';
+                    userSearchInput.value = '';
+                    userStatusFilter.value = 'all';
+                    filterUsers();
+                });
+            }
+            
+            // Pharmacy search and filter
+            const pharmacySearchInput = document.getElementById('pharmacy-search-input');
+            const pharmacyStatusFilter = document.getElementById('pharmacy-status-filter');
+            const clearPharmacyFilters = document.getElementById('clear-pharmacy-filters');
+            
+            if (pharmacySearchInput) {
+                pharmacySearchInput.addEventListener('input', (e) => {
+                    currentPharmacySearch = e.target.value;
+                    filterPharmacies();
+                });
+            }
+            
+            if (pharmacyStatusFilter) {
+                pharmacyStatusFilter.addEventListener('change', (e) => {
+                    currentPharmacyFilter = e.target.value;
+                    filterPharmacies();
+                });
+            }
+            
+            if (clearPharmacyFilters) {
+                clearPharmacyFilters.addEventListener('click', () => {
+                    currentPharmacySearch = '';
+                    currentPharmacyFilter = 'all';
+                    pharmacySearchInput.value = '';
+                    pharmacyStatusFilter.value = 'all';
+                    filterPharmacies();
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

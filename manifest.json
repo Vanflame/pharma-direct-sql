@@ -1,0 +1,43 @@
+{
+  "name": "PHARMA DIRECT - OTC Medicine Delivery",
+  "short_name": "PHARMA DIRECT",
+  "description": "Your trusted OTC medicine delivery platform. Order medicines online with fast delivery and professional service.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "lang": "en",
+  "categories": ["health", "medical", "shopping", "pharmacy"],
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Browse Categories",
+      "short_name": "Categories",
+      "description": "Browse medicine categories",
+      "url": "./categories/"
+    },
+    {
+      "name": "Track Orders",
+      "short_name": "Track",
+      "description": "Track your orders",
+      "url": "./track/"
+    },
+    {
+      "name": "Shopping Cart",
+      "short_name": "Cart",
+      "description": "View your cart",
+      "url": "./cart/"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
