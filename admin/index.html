@@ -616,7 +616,7 @@
                                         </div>
                                         <div class="flex justify-between items-center py-2 border-b border-gray-200">
                                             <span class="font-medium text-gray-600">Payment</span>
-                                            <span class="text-gray-900">${order.payment_method || order.cod ? 'COD' : 'Card'}</span>
+                                            <span class="text-gray-900">${order.payment_method || 'Unknown'}</span>
                                             ${order.cod ? '<span class="text-xs text-gray-500 ml-1">(Cash on Delivery)</span>' : ''}
                                         </div>
                                         <div class="flex justify-between items-center py-2 border-b border-gray-200">
@@ -709,6 +709,15 @@
                         </div>
                         ` : ''}
                         </div>
+
+                        <!-- Footer -->
+                        <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                            <button id="close-order-modal-btn" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
             `;
 
             document.body.insertAdjacentHTML('beforeend', details);
@@ -898,15 +907,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Footer -->
-                        <div class="bg-gray-50 px-6 py-4 flex justify-end">
-                            <button onclick="this.closest('.fixed').remove()" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium">
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
             `;
 
             document.body.insertAdjacentHTML('beforeend', details);
@@ -1788,6 +1788,9 @@
                         })
                         .eq('id', btn.dataset.id);
                     if (error) throw error;
+                    
+                    // Show success message
+                    showSuccess('Payment confirmed and order updated');
                 } else if (btn.dataset.action === 'advance') {
                     const { data: order } = await supabase
                         .from(TABLES.orders)
@@ -1808,9 +1811,14 @@
                             })
                             .eq('id', btn.dataset.id);
                         if (error) throw error;
+                        
+                        // Show success message
+                        showSuccess(`Order status updated to ${next}`);
                     }
                 }
-                // Orders will be updated automatically via real-time listener
+                
+                // Reload orders to show updated status
+                await loadOrders();
             } catch (error) {
                 console.error('Error updating order:', error);
                 alert(getProfessionalErrorMessage(error));
@@ -1904,7 +1912,7 @@
                                     </div>
                                     <div class="bg-green-50 rounded-lg p-3">
                                         <p class="text-xs font-medium text-green-600 uppercase tracking-wide">Payment</p>
-                                        <p class="text-sm font-semibold text-green-900">${o.payment_method || o.cod ? 'COD' : 'Card'}</p>
+                                        <p class="text-sm font-semibold text-green-900">${o.payment_method || 'Unknown'}</p>
                                         ${o.cod ? '<span class="text-xs text-gray-500">(Cash on Delivery)</span>' : ''}
                                     </div>
                                 </div>
