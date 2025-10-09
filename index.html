@@ -684,56 +684,7 @@
                 grid.appendChild(card);
             });
 
-            grid.addEventListener("click", (e) => {
-                const target = e.target;
-                if (target.tagName === "BUTTON" && target.dataset.id) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    // Check if button is disabled (out of stock)
-                    if (target.disabled) {
-                        return;
-                    }
-
-                    const id = target.dataset.id;
-
-                    // Find the product data from the loaded products
-                    const product = loadedProducts.find(p => p.id === id);
-                    if (!product) {
-                        return;
-                    }
-
-                    const name = product.name;
-                    const discountedPrice = product.discount > 0 ? product.price * (1 - product.discount / 100) : product.price;
-                    const fallbackImage = 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop';
-                    const imageURL = product.imageURL || fallbackImage;
-
-
-                    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-                    const existing = cart.find(i => i.id === id);
-                    if (existing) {
-                        existing.quantity += 1;
-                    } else {
-                        cart.push({
-                            id,
-                            name,
-                            price: discountedPrice,
-                            originalPrice: product.price,
-                            discount: product.discount || 0,
-                            imageURL,
-                            quantity: 1
-                        });
-                    }
-                    localStorage.setItem("cart", JSON.stringify(cart));
-                    updateCartCount();
-
-                    // Show feedback to user
-                    target.textContent = 'Added!';
-                    setTimeout(() => {
-                        target.textContent = 'Add to Cart';
-                    }, 1000);
-                }
-            });
+            // Event listener moved outside to prevent duplicates
             
             // Hide loading
             window.loadingManager.hide();
@@ -1084,6 +1035,63 @@
             } else {
                 console.log('🏠 Home page: No user on page load, showing login UI');
                 updateMobileMenuContent(null, null);
+            }
+        });
+        
+        // Add-to-cart event listener (moved outside loadProducts to prevent duplicates)
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById("product-grid");
+            if (grid) {
+                // Single event listener for all add-to-cart buttons
+                grid.addEventListener("click", (e) => {
+                    const target = e.target;
+                    if (target.tagName === "BUTTON" && target.dataset.id) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Check if button is disabled (out of stock)
+                        if (target.disabled) {
+                            return;
+                        }
+
+                        const id = target.dataset.id;
+
+                        // Find the product data from the loaded products
+                        const product = loadedProducts.find(p => p.id === id);
+                        if (!product) {
+                            return;
+                        }
+
+                        const name = product.name;
+                        const discountedPrice = product.discount > 0 ? product.price * (1 - product.discount / 100) : product.price;
+                        const fallbackImage = 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop';
+                        const imageURL = product.imageURL || fallbackImage;
+
+                        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+                        const existing = cart.find(i => i.id === id);
+                        if (existing) {
+                            existing.quantity += 1;
+                        } else {
+                            cart.push({
+                                id,
+                                name,
+                                price: discountedPrice,
+                                originalPrice: product.price,
+                                discount: product.discount || 0,
+                                imageURL,
+                                quantity: 1
+                            });
+                        }
+                        localStorage.setItem("cart", JSON.stringify(cart));
+                        updateCartCount();
+
+                        // Show feedback to user
+                        target.textContent = 'Added!';
+                        setTimeout(() => {
+                            target.textContent = 'Add to Cart';
+                        }, 1000);
+                    }
+                });
             }
         });
         
