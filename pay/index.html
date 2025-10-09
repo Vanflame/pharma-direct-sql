@@ -371,14 +371,30 @@
                 }
                 console.log('Order status updated successfully');
 
-                // Step 2: Credit pharmacy wallets (with error handling)
+                // Step 2: Credit pharmacy wallets (CRITICAL - must succeed)
+                console.log('=== STARTING WALLET CREDITING ===');
+                console.log('Current order object:', currentOrder);
+                console.log('Order items:', currentOrder.items);
+                console.log('Items count:', currentOrder.items?.length);
+                
+                if (!currentOrder.items || currentOrder.items.length === 0) {
+                    console.error('❌ CRITICAL: No order items found!');
+                    throw new Error('Cannot process payment: No order items found');
+                }
+                
                 try {
                     console.log('Crediting pharmacy wallets...');
                     await creditToPharmacyWallet(currentOrder);
-                    console.log('Pharmacy wallets credited successfully');
+                    console.log('✅ Pharmacy wallets credited successfully');
                 } catch (walletError) {
-                    console.warn('Warning: Could not credit pharmacy wallets:', walletError);
-                    // Continue with payment even if wallet crediting fails
+                    console.error('❌ CRITICAL ERROR: Could not credit pharmacy wallets:', walletError);
+                    console.error('Error details:', {
+                        message: walletError.message,
+                        code: walletError.code,
+                        details: walletError.details
+                    });
+                    // This is critical - if wallet crediting fails, the payment should fail
+                    throw new Error(`Payment processing failed: ${walletError.message}`);
                 }
 
                 showSuccess('Payment completed successfully!');
@@ -403,19 +419,27 @@
 
         async function creditToPharmacyWallet(order) {
             try {
-                console.log('Starting pharmacy wallet crediting process...');
+                console.log('🔄 Starting pharmacy wallet crediting process...');
+                console.log('📦 Order items to process:', order.items);
+                
+                if (!order.items || !Array.isArray(order.items) || order.items.length === 0) {
+                    throw new Error('No order items provided to creditToPharmacyWallet');
+                }
+                
                 const pharmacyItems = {};
 
                 // Group items by pharmacy
                 for (const item of order.items) {
+                    console.log('Processing item:', item);
                     const productId = item.product_id || item.productId || item.id;
                     if (!productId) {
-                        console.warn('Item missing product_id:', item);
-                        continue;
+                        console.error('❌ Item missing product_id:', item);
+                        throw new Error(`Order item missing product_id: ${JSON.stringify(item)}`);
                     }
 
                     try {
                         // Get product details from Supabase
+                        console.log(`🔍 Fetching product: ${productId}`);
                         const { data: product, error: productError } = await supabase
                             .from(TABLES.products)
                             .select('*')
@@ -423,11 +447,16 @@
                             .single();
 
                         if (productError || !product) {
-                            console.warn('Product not found:', productId);
-                            continue;
+                            console.error(`❌ Product not found: ${productId}`, productError);
+                            throw new Error(`Product not found: ${productId}`);
                         }
 
                         const pharmacyId = product.pharmacy_id;
+                        console.log(`✅ Product found, belongs to pharmacy: ${pharmacyId}`);
+
+                        if (!pharmacyId) {
+                            throw new Error(`Product ${productId} has no pharmacy_id`);
+                        }
 
                         if (!pharmacyItems[pharmacyId]) {
                             pharmacyItems[pharmacyId] = { items: [], totalAmount: 0 };
@@ -439,13 +468,19 @@
                             price: item.price
                         });
                         pharmacyItems[pharmacyId].totalAmount += item.price * item.quantity;
+                        console.log(`📊 Added ₱${item.price * item.quantity} to pharmacy ${pharmacyId}`);
                     } catch (productError) {
-                        console.warn('Error processing product:', productId, productError);
-                        continue;
+                        console.error('❌ Error processing product:', productId, productError);
+                        throw productError; // Don't continue, fail the payment
                     }
                 }
 
-                console.log('Pharmacy items grouped:', pharmacyItems);
+                console.log('📋 Pharmacy items grouped:', pharmacyItems);
+                console.log('📊 Number of pharmacies to process:', Object.keys(pharmacyItems).length);
+
+                if (Object.keys(pharmacyItems).length === 0) {
+                    throw new Error('No pharmacy items to process after grouping');
+                }
 
                 // Process each pharmacy
                 for (const [pharmacyId, pharmacyData] of Object.entries(pharmacyItems)) {
@@ -552,22 +587,26 @@
                         }
 
                         // Update product stock for each item
+                        console.log(`📦 Deducting stock for ${pharmacyData.items.length} items...`);
                         for (const item of pharmacyData.items) {
                             try {
+                                console.log(`🔍 Checking stock for product: ${item.productId}`);
                                 // Get current product stock
                                 const { data: currentProduct, error: currentError } = await supabase
                                     .from(TABLES.products)
-                                    .select('stock')
+                                    .select('stock, name')
                                     .eq('id', item.productId)
                                     .single();
 
                                 if (currentError || !currentProduct) {
-                                    console.warn(`Product not found for stock update: ${item.productId}`);
-                                    continue;
+                                    console.error(`❌ Product not found for stock update: ${item.productId}`, currentError);
+                                    throw new Error(`Cannot update stock for missing product: ${item.productId}`);
                                 }
 
                                 const currentStock = currentProduct.stock || 0;
                                 const newStock = Math.max(0, currentStock - item.quantity);
+
+                                console.log(`📉 Stock update: ${currentProduct.name} → ${currentStock} - ${item.quantity} = ${newStock}`);
 
                                 // Update product stock
                                 const { error: stockUpdateError } = await supabase
@@ -579,19 +618,25 @@
                                     .eq('id', item.productId);
 
                                 if (stockUpdateError) {
-                                    console.warn(`Error updating stock for product ${item.productId}:`, stockUpdateError);
+                                    console.error(`❌ Error updating stock for product ${item.productId}:`, stockUpdateError);
+                                    throw stockUpdateError;
                                 } else {
-                                    console.log(`Stock updated for product ${item.productId}: ${currentStock} -> ${newStock}`);
+                                    console.log(`✅ Stock updated successfully: ${currentProduct.name} (${currentStock} → ${newStock})`);
                                 }
                             } catch (stockError) {
-                                console.warn(`Error updating stock for product ${item.productId}:`, stockError);
+                                console.error(`❌ Critical error updating stock for product ${item.productId}:`, stockError);
+                                throw stockError; // Fail the payment if stock can't be updated
                             }
                         }
+                        console.log(`✅ All stock deductions completed for pharmacy ${pharmacyId}`);
                     } catch (pharmacyError) {
-                        console.error(`Error processing pharmacy ${pharmacyId}:`, pharmacyError);
-                        // Continue with other pharmacies even if one fails
+                        console.error(`❌ CRITICAL: Error processing pharmacy ${pharmacyId}:`, pharmacyError);
+                        // Don't continue - if any pharmacy fails, the whole payment should fail
+                        throw pharmacyError;
                     }
                 }
+                
+                console.log('🎉 All pharmacies processed successfully!');
 
                 console.log('Payment credited and stock reduced successfully');
             } catch (error) {
