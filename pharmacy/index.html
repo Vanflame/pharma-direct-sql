@@ -2131,13 +2131,13 @@
             const isEditing = editingProductId !== null;
             setButtonLoading(saveBtn, true, isEditing ? 'Updating...' : 'Adding...');
 
-            // Convert frontend category key to proper category name
+            // Convert frontend category key to proper category name (matching your database)
             const categoryKeyToName = {
-                'cold-flu': 'Cold & Flu',
+                'cold-flu': 'Fever & Flu',
                 'pain-relief': 'Pain Relief',
                 'vitamins': 'Vitamins',
-                'skincare': 'Skincare',
-                'digestive': 'Digestive',
+                'skincare': 'Skin Care',
+                'digestive': 'Digestive Health',
                 'respiratory': 'Respiratory',
                 'diabetes': 'Diabetes',
                 'heart': 'Heart Health',
