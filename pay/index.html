@@ -450,9 +450,16 @@
                 // Process each pharmacy
                 for (const [pharmacyId, pharmacyData] of Object.entries(pharmacyItems)) {
                     try {
-                        console.log(`Processing pharmacy: ${pharmacyId}`);
-                        const commission = pharmacyData.totalAmount * 0.05;
-                        const pharmacyAmount = pharmacyData.totalAmount - commission;
+                        console.log(`🏥 Processing pharmacy: ${pharmacyId}`);
+                        const commission = parseFloat((pharmacyData.totalAmount * 0.05).toFixed(2));
+                        const pharmacyAmount = parseFloat((pharmacyData.totalAmount - commission).toFixed(2));
+
+                        console.log(`💰 Payment breakdown:`, {
+                            totalAmount: pharmacyData.totalAmount,
+                            commission: commission,
+                            pharmacyAmount: pharmacyAmount,
+                            paymentMethod: currentOrder.payment_method
+                        });
 
                         // Get pharmacy details from Supabase
                         const { data: pharmacy, error: pharmacyError } = await supabase
@@ -462,31 +469,61 @@
                             .single();
 
                         if (pharmacyError || !pharmacy) {
-                            console.warn(`Pharmacy not found: ${pharmacyId}`);
+                            console.error(`❌ Pharmacy not found: ${pharmacyId}`, pharmacyError);
                             continue;
                         }
 
-                        console.log(`Updating pharmacy wallet for ${pharmacyId}`);
-                        const currentBalance = pharmacy.wallet_balance || 0;
-                        const currentPending = pharmacy.pending_balance || 0;
+                        console.log(`📊 Current pharmacy wallet state:`, {
+                            pharmacyId: pharmacyId,
+                            pharmacyName: pharmacy.name,
+                            currentWalletBalance: pharmacy.wallet_balance || 0,
+                            currentPendingBalance: pharmacy.pending_balance || 0
+                        });
+
+                        const currentBalance = parseFloat(pharmacy.wallet_balance || 0);
+                        const currentPending = parseFloat(pharmacy.pending_balance || 0);
                         const isQRPayment = currentOrder.payment_method !== 'COD';
 
+                        // Calculate new balances
+                        const newWalletBalance = isQRPayment ? currentBalance + pharmacyAmount : currentBalance;
+                        const newPendingBalance = isQRPayment ? currentPending : currentPending + pharmacyAmount;
+
+                        console.log(`🔄 Wallet update calculation:`, {
+                            isQRPayment: isQRPayment,
+                            paymentMethod: currentOrder.payment_method,
+                            currentWalletBalance: currentBalance,
+                            newWalletBalance: newWalletBalance,
+                            difference: newWalletBalance - currentBalance,
+                            currentPendingBalance: currentPending,
+                            newPendingBalance: newPendingBalance
+                        });
+
                         // Update pharmacy wallet in Supabase
-                        const { error: updateError } = await supabase
+                        const { data: updateData, error: updateError } = await supabase
                             .from(TABLES.pharmacies)
                             .update({
-                                wallet_balance: isQRPayment ? currentBalance + pharmacyAmount : currentBalance,
-                                pending_balance: isQRPayment ? currentPending : currentPending + pharmacyAmount,
+                                wallet_balance: newWalletBalance,
+                                pending_balance: newPendingBalance,
                                 updated_at: new Date().toISOString()
                             })
-                            .eq('id', pharmacyId);
+                            .eq('id', pharmacyId)
+                            .select();
 
                         if (updateError) {
-                            console.error(`Error updating pharmacy wallet for ${pharmacyId}:`, updateError);
+                            console.error(`❌ Error updating pharmacy wallet for ${pharmacyId}:`, updateError);
+                            console.error(`❌ Update details:`, {
+                                pharmacyId: pharmacyId,
+                                attempted_wallet_balance: newWalletBalance,
+                                attempted_pending_balance: newPendingBalance
+                            });
                             continue;
                         }
 
-                        console.log(`Pharmacy wallet updated for ${pharmacyId}`);
+                        console.log(`✅ Pharmacy wallet updated successfully!`, updateData);
+                        console.log(`✅ New balances:`, {
+                            wallet_balance: newWalletBalance,
+                            pending_balance: newPendingBalance
+                        });
 
                         // Record transaction (if transactions table exists)
                         console.log('💰 Recording transaction for regular payment...');
