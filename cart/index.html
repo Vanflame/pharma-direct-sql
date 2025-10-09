@@ -725,7 +725,7 @@
                 if (userDoc) {
                     const userData = userDoc;
                     console.log('👤 User data loaded:', userData);
-                    userCodEnabled = userData.codUnlocked || false;
+                    userCodEnabled = userData.cod_unlocked || false;  // Fixed: use snake_case
 
                     // Update COD option visibility
                     if (userCodEnabled) {
