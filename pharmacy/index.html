@@ -1574,7 +1574,6 @@
                         .update({
                         stage: 'Confirmed',
                             payment_status: 'Confirmed',
-                            confirmed_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         })
                         .eq('id', orderId);
@@ -1605,7 +1604,7 @@
         // Function to get the next action text based on current stage
         function getNextActionText(currentStage) {
             const stageActions = {
-                'Pending': 'Confirm Payment',
+                'Pending': null, // No next action - use "Confirm & Deduct Stock" button instead
                 'Confirmed': 'Mark as Shipped',
                 'To Be Received': 'Mark as Delivered',
                 'Delivered': null // No next action
