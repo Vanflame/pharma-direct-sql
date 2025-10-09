@@ -1532,12 +1532,11 @@
                         product = data;
                     }
 
-                    if (productSnap && productSnap.exists()) {
-                        const product = productSnap.data();
+                    if (product) {
                         console.log(`✅ Found product: ${product.name} (Current stock: ${product.stock})`);
-                        console.log(`🔍 Product pharmacyId: ${product.pharmacyId}`);
-                        console.log(`🔍 Current pharmacy userId: ${pharmacyId}`);
-                        console.log(`🔍 Do they match? ${product.pharmacyId === pharmacyId ? 'YES' : 'NO'}`);
+                        console.log(`🔍 Product pharmacy_id: ${product.pharmacy_id}`);
+                        console.log(`🔍 Current pharmacyId: ${pharmacyId}`);
+                        console.log(`🔍 Do they match? ${product.pharmacy_id === pharmacyId ? 'YES' : 'NO'}`);
 
                         const newStock = Math.max(0, product.stock - item.quantity); // Prevent negative stock
                         console.log(`🔄 Updating stock: ${product.stock} → ${newStock}`);
