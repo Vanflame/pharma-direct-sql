@@ -710,7 +710,7 @@
                         ` : ''}
                         </div>
 
-                        
+                       
             `;
 
             document.body.insertAdjacentHTML('beforeend', details);
@@ -1810,8 +1810,14 @@
                     }
                 }
                 
-                // Reload orders to show updated status
-                await loadOrders();
+                // Save current tab before reload
+                const currentTab = currentAdminOrderStatus;
+                
+                // Reload orders from database
+                await loadAllAdminOrders();
+                
+                // Restore the current tab view
+                loadOrders(currentTab);
             } catch (error) {
                 console.error('Error updating order:', error);
                 alert(getProfessionalErrorMessage(error));
