@@ -1805,8 +1805,28 @@
                             .eq('id', btn.dataset.id);
                         if (error) throw error;
                         
-                        // Show success message
-                        showSuccess(`Order status updated to ${next}`);
+                        // Credit COD payment to pharmacy wallet when order is delivered
+                        if (next === 'Delivered' && (order.cod || order.payment_method === 'COD')) {
+                            console.log('💰 Order delivered! Crediting COD payment to pharmacy wallet');
+                            try {
+                                const { data: creditResult, error: creditError } = await supabase
+                                    .rpc('credit_cod_to_pharmacy', { order_id_param: btn.dataset.id });
+                                
+                                if (creditError) {
+                                    console.error('❌ Error crediting wallet:', creditError);
+                                    showSuccess(`Order delivered (Wallet credit pending - check logs)`);
+                                } else {
+                                    console.log('✅ Wallet credited:', creditResult);
+                                    showSuccess(`Order delivered! ₱${creditResult.amount?.toFixed(2)} credited to pharmacy`);
+                                }
+                            } catch (walletError) {
+                                console.error('❌ Exception crediting wallet:', walletError);
+                                showSuccess(`Order status updated to ${next}`);
+                            }
+                        } else {
+                            // Show success message
+                            showSuccess(`Order status updated to ${next}`);
+                        }
                     }
                 }
                 

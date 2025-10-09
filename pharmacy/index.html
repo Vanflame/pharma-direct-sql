@@ -1587,11 +1587,8 @@
                     throw orderError; // Re-throw to stop the process
                 }
 
-                // Credit payment to pharmacy wallet for COD orders
-                if (order.cod || order.payment_method === 'COD') {
-                    console.log('💰 Crediting COD payment to pharmacy wallet');
-                    await creditCODToPharmacyWallet(order);
-                }
+                // COD payment will be credited when order is marked as delivered
+                // (not at confirmation, since customer hasn't paid yet)
 
                 await loadProducts();
                 console.log('🎉 Order confirmation completed successfully!');
@@ -1660,7 +1657,28 @@
                 if (updateError) throw updateError;
 
                 console.log('✅ Order status updated successfully');
-                showSuccess(`Order status updated to ${nextStage}`);
+                
+                // Credit COD payment to pharmacy wallet when order is delivered
+                if (nextStage === 'Delivered' && (order.cod || order.payment_method === 'COD')) {
+                    console.log('💰 Order delivered! Crediting COD payment to pharmacy wallet');
+                    try {
+                        const { data: creditResult, error: creditError } = await supabase
+                            .rpc('credit_cod_to_pharmacy', { order_id_param: orderId });
+                        
+                        if (creditError) {
+                            console.error('❌ Error crediting wallet:', creditError);
+                            showSuccess(`Order delivered (Wallet credit pending - please refresh wallet)`);
+                        } else {
+                            console.log('✅ Wallet credited:', creditResult);
+                            showSuccess(`Order delivered! ₱${creditResult.amount?.toFixed(2)} credited to your wallet`);
+                        }
+                    } catch (walletError) {
+                        console.error('❌ Exception crediting wallet:', walletError);
+                        showSuccess(`Order status updated to ${nextStage}`);
+                    }
+                } else {
+                    showSuccess(`Order status updated to ${nextStage}`);
+                }
                 
                 // Reload orders to show updated status
                 await loadAllOrders();
