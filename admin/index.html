@@ -758,8 +758,20 @@
             }
             
             // Get user's orders
-            const { data: ordersQuery } = await supabase.from(TABLES.orders).select('*').eq('userId', userId);
+            console.log('🔍 Fetching orders for user:', userId);
+            const { data: ordersQuery, error: ordersError } = await supabase
+                .from(TABLES.orders)
+                .select('*')
+                .eq('user_id', userId);  // Fixed: was 'userId', should be 'user_id'
+            
+            console.log('📊 Orders query result:', { ordersQuery, ordersError });
+            
+            if (ordersError) {
+                console.error('❌ Error fetching user orders:', ordersError);
+            }
+            
             const orders = ordersQuery || [];
+            console.log('📋 Found orders:', orders.length);
 
             const totalOrders = orders.length;
             const completedOrders = orders.filter(o => o.stage === 'Delivered').length;
@@ -767,6 +779,14 @@
 
             const recentOrders = orders.slice(0, 5).map(o => {
                 const data = o;
+                // Handle both Firebase timestamps and Supabase timestamps
+                let orderDate = 'Unknown';
+                if (data.created_at) {
+                    orderDate = new Date(data.created_at).toLocaleDateString();
+                } else if (data.createdAt && data.createdAt.seconds) {
+                    orderDate = new Date(data.createdAt.seconds * 1000).toLocaleDateString();
+                }
+                
                 return `
                     <div class="flex justify-between items-center py-2 border-b last:border-0">
                         <div>
@@ -774,7 +794,7 @@
                             <div class="text-sm text-gray-600">${data.stage} • ₱${data.total?.toLocaleString() || '0'}</div>
                         </div>
                         <div class="text-sm text-gray-500">
-                            ${data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : 'Unknown'}
+                            ${orderDate}
                         </div>
                     </div>
                 `;
