@@ -1399,8 +1399,6 @@
                     .from(TABLES.orders)
                     .update({
                     stage: 'Declined',
-                        declined_at: new Date().toISOString(),
-                        declined_by: pharmacyId,
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', orderId);
@@ -1408,8 +1406,8 @@
                 if (error) throw error;
 
                 console.log('✅ Order declined successfully');
+                await loadAllOrders();
                 showSuccess('Order has been declined.');
-                // Orders will be updated automatically via real-time listener
 
             } catch (error) {
                 console.error('❌ Error declining order:', error);
