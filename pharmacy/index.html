@@ -1589,9 +1589,9 @@
                 // (not at confirmation, since customer hasn't paid yet)
 
                 await loadProducts();
+                await loadAllOrders();
                 console.log('🎉 Order confirmation completed successfully!');
                 showSuccess('Order confirmed and stock deducted successfully!');
-                // Orders will be updated automatically via real-time listener
             }
             } catch (error) {
                 console.error('❌ Error confirming order:', error);
