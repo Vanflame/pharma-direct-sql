@@ -833,58 +833,7 @@
                 };
             });
 
-            // Handle both navigation and add to cart functionality
-            grid.addEventListener("click", (e) => {
-                const target = e.target;
-                
-                // Handle Add to Cart button clicks
-                if (target.tagName === "BUTTON" && target.dataset.id) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    // Check if button is disabled (out of stock)
-                    if (target.disabled) {
-                        console.log('Cannot add out-of-stock item to cart');
-                        return;
-                    }
-
-                    const id = target.dataset.id;
-                    const product = products.find(p => p.id === id);
-                    if (!product) return;
-
-                    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-                    const existing = cart.find(i => i.id === id);
-                    const discountedPrice = product.discount > 0 ? product.price * (1 - product.discount / 100) : product.price;
-                    if (existing) existing.quantity += 1; else cart.push({
-                        id,
-                        name: product.name,
-                        price: discountedPrice,
-                        originalPrice: product.price,
-                        discount: product.discount || 0,
-                        imageURL: product.imageURL,
-                        quantity: 1
-                    });
-                    localStorage.setItem("cart", JSON.stringify(cart));
-                    updateCartCount();
-
-                    // Show feedback to user
-                    target.textContent = 'Added!';
-                    setTimeout(() => {
-                        target.textContent = 'Add to Cart';
-                    }, 1000);
-                }
-                // Handle card clicks for navigation (everything else)
-                else {
-                    const card = e.target.closest('a[href*="../product/"]');
-                    if (card) {
-                        e.preventDefault();
-                        window.loadingManager.showPageTransition('Loading product details...');
-                        setTimeout(() => {
-                            window.location.href = card.href;
-                        }, 100);
-                    }
-                }
-            });
+            // Event listener moved outside to prevent duplicates
         }
 
         // Show all products when empty state button is clicked
@@ -902,6 +851,65 @@
 
         // Load products on page load
         loadProducts().catch(console.error);
+
+        // Add-to-cart event listener (moved outside renderProducts to prevent duplicates)
+        document.addEventListener('DOMContentLoaded', () => {
+            const grid = document.getElementById("product-grid");
+            if (grid) {
+                // Single event listener for all add-to-cart buttons
+                grid.addEventListener("click", (e) => {
+                    const target = e.target;
+                    
+                    // Handle Add to Cart button clicks
+                    if (target.tagName === "BUTTON" && target.dataset.id) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Check if button is disabled (out of stock)
+                        if (target.disabled) {
+                            console.log('Cannot add out-of-stock item to cart');
+                            return;
+                        }
+
+                        const id = target.dataset.id;
+                        const product = allProducts.find(p => p.id === id);
+                        if (!product) return;
+
+                        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+                        const existing = cart.find(i => i.id === id);
+                        const discountedPrice = product.discount > 0 ? product.price * (1 - product.discount / 100) : product.price;
+                        if (existing) existing.quantity += 1; else cart.push({
+                            id,
+                            name: product.name,
+                            price: discountedPrice,
+                            originalPrice: product.price,
+                            discount: product.discount || 0,
+                            imageURL: product.imageURL,
+                            quantity: 1
+                        });
+                        localStorage.setItem("cart", JSON.stringify(cart));
+                        updateCartCount();
+
+                        // Show feedback to user
+                        target.textContent = 'Added!';
+                        setTimeout(() => {
+                            target.textContent = 'Add to Cart';
+                        }, 1000);
+                    }
+                    // Handle card clicks for navigation (everything else)
+                    else {
+                        const card = e.target.closest('a[href*="../product/"]');
+                        if (card) {
+                            e.preventDefault();
+                            window.loadingManager.showPageTransition('Loading product details...');
+                            setTimeout(() => {
+                                window.location.href = card.href;
+                            }, 100);
+                        }
+                    }
+                });
+            }
+        });
 
         // Toggle login/account UI based on auth
         onAuthStateChanged(async (user) => {
