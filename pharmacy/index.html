@@ -511,6 +511,47 @@
         import { TABLES } from '../js/supabase-config.js';
         import { getProductsByPharmacy, addProduct, updateProduct, deleteProduct, getOrdersByPharmacy, updateOrderStage, updatePharmacyWallet } from '../js/supabase-database.js';
 
+        // Dynamic category creation function
+        async function getOrCreateCategory(categoryName) {
+            try {
+                // First, try to find existing category
+                const { data: existingCategory, error: findError } = await supabase
+                    .from(TABLES.categories)
+                    .select('id, name')
+                    .eq('name', categoryName)
+                    .single();
+
+                if (existingCategory && !findError) {
+                    console.log('✅ Found existing category:', categoryName, existingCategory.id);
+                    return existingCategory.id;
+                }
+
+                // If category doesn't exist, create it
+                console.log('📝 Creating new category:', categoryName);
+                const { data: newCategory, error: createError } = await supabase
+                    .from(TABLES.categories)
+                    .insert([{
+                        name: categoryName,
+                        description: `Category for ${categoryName}`,
+                        created_at: new Date().toISOString()
+                    }])
+                    .select('id, name')
+                    .single();
+
+                if (createError) {
+                    console.error('❌ Error creating category:', createError);
+                    throw createError;
+                }
+
+                console.log('✅ Created new category:', categoryName, newCategory.id);
+                return newCategory.id;
+
+            } catch (error) {
+                console.error('❌ Error in getOrCreateCategory:', error);
+                throw error;
+            }
+        }
+
         const tabs = document.querySelectorAll('aside [data-tab]');
         const panels = {
             products: document.getElementById('tab-products'),
@@ -2090,39 +2131,43 @@
             const isEditing = editingProductId !== null;
             setButtonLoading(saveBtn, true, isEditing ? 'Updating...' : 'Adding...');
 
-            // Convert category name to UUID
-            const categoryMap = {
-                'cold-flu': 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-                'pain-relief': 'b2c3d4e5-f6g7-8901-bcde-f23456789012',
-                'vitamins': 'c3d4e5f6-g7h8-9012-cdef-345678901234',
-                'skincare': 'd4e5f6g7-h8i9-0123-defg-456789012345',
-                'digestive': 'e5f6g7h8-i9j0-1234-efgh-567890123456',
-                'respiratory': 'f6g7h8i9-j0k1-2345-fghi-678901234567',
-                'diabetes': 'g7h8i9j0-k1l2-3456-ghij-789012345678',
-                'heart': 'h8i9j0k1-l2m3-4567-hijk-890123456789',
-                'mental-health': 'i9j0k1l2-m3n4-5678-ijkl-901234567890',
-                'women-health': 'j0k1l2m3-n4o5-6789-jklm-012345678901',
-                'men-health': 'k1l2m3n4-o5p6-7890-klmn-123456789012',
-                'children': 'l2m3n4o5-p6q7-8901-lmno-234567890123',
-                'elderly': 'm3n4o5p6-q7r8-9012-mnop-345678901234',
-                'first-aid': 'n4o5p6q7-r8s9-0123-nopq-456789012345',
-                'medical-devices': 'o5p6q7r8-s9t0-1234-opqr-567890123456',
-                'other': 'p6q7r8s9-t0u1-2345-pqrs-678901234567'
+            // Convert frontend category key to proper category name
+            const categoryKeyToName = {
+                'cold-flu': 'Cold & Flu',
+                'pain-relief': 'Pain Relief',
+                'vitamins': 'Vitamins',
+                'skincare': 'Skincare',
+                'digestive': 'Digestive',
+                'respiratory': 'Respiratory',
+                'diabetes': 'Diabetes',
+                'heart': 'Heart Health',
+                'mental-health': 'Mental Health',
+                'women-health': 'Women Health',
+                'men-health': 'Men Health',
+                'children': 'Children',
+                'elderly': 'Elderly',
+                'first-aid': 'First Aid',
+                'medical-devices': 'Medical Devices',
+                'other': 'Other'
             };
-            
+
             // Validate required fields
-            if (!data.category || !categoryMap[data.category]) {
+            const categoryName = categoryKeyToName[data.category];
+            if (!data.category || !categoryName) {
                 showError('Please select a valid category');
                 setButtonLoading(saveBtn, false);
                 return;
             }
+
+            // Get or create category dynamically
+            const categoryId = await getOrCreateCategory(categoryName);
 
             const productData = {
                 name: data.name,
                 price: Number(data.price || 0),
                 discount: Number(data.discount || 0),
                 stock: Number(data.stock || 0),
-                category_id: categoryMap[data.category],
+                category_id: categoryId,
                 image_url: data.imageURL || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop',
                 description: data.description || '',
                 featured: Boolean(data.featured),
