@@ -609,14 +609,41 @@
                 .single();
             
             if (!pharmacyDoc) {
-                console.log('❌ ensurePharmacy: No pharmacy record found for user');
-                window.location.href = '../';
-                return;
+                console.log('❌ ensurePharmacy: No pharmacy record found for user, attempting to create one...');
+                
+                // Try to create the missing pharmacy record
+                const pharmacyData = {
+                    user_id: data.id, // Use the database user ID
+                    name: data.name || data.email,
+                    email: data.email,
+                    phone: data.phone || "",
+                    approved: false,
+                    disabled: false,
+                    total_orders: 0,
+                    wallet_balance: 0.00,
+                    pending_balance: 0.00
+                };
+
+                const { data: newPharmacyDoc, error: pharmacyError } = await supabase
+                    .from(TABLES.pharmacies)
+                    .insert([pharmacyData])
+                    .select()
+                    .single();
+
+                if (pharmacyError) {
+                    console.error('❌ ensurePharmacy: Failed to create pharmacy record:', pharmacyError);
+                    alert('There was an issue setting up your pharmacy account. Please contact support.');
+                    window.location.href = '../';
+                    return;
+                } else {
+                    console.log('✅ ensurePharmacy: Created missing pharmacy record');
+                    pharmacyId = newPharmacyDoc.id;
+                }
+            } else {
+                // Use pharmacy table ID as pharmacyId (not user table ID)
+                pharmacyId = pharmacyDoc.id;
+                console.log('🔍 ensurePharmacy: Using existing pharmacy ID:', pharmacyId);
             }
-            
-            // Use pharmacy table ID as pharmacyId (not user table ID)
-            pharmacyId = pharmacyDoc.id;
-            console.log('🔍 ensurePharmacy: Using pharmacy ID:', pharmacyId);
         }
 
         let editingProductId = null;
