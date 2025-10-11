@@ -374,14 +374,14 @@ CREATE TABLE withdrawal_requests (
 
 ## 📞 Contact & Support
 
-**Project Repository:** [[GitHub Link](https://github.com/Vanflame/pharma-direct-sql)]
-**Demo Environment:** [[Live Demo Link](https://vanflame.github.io/pharma-direct-sql/)]
+**Project Repository:** [GitHub Link]
+**Documentation:** [Wiki Link]
+**Demo Environment:** [Live Demo Link]
 
 **Team Members:**
-- [Niel] - Full-stack Developer
-- [Joriz] - Project Advisor
+- [Your Name] - Full-stack Developer
+- [Professor Name] - Project Advisor
 
 ---
 
-*This documentation represents the current state of the Pharma-Direct project as of [10/7/2025]. For the most up-to-date information, please refer to the project repository.*
-
+*This documentation represents the current state of the Pharma-Direct project as of [Current Date]. For the most up-to-date information, please refer to the project repository.*

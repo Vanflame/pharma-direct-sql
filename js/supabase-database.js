@@ -9,6 +9,141 @@ import { TABLES, ORDER_STAGES, PAYMENT_METHODS, PAYMENT_STATUS, getProfessionalE
 // =============================================
 
 /**
+ * Check and automatically unlock COD for eligible users
+ * @param {string} userId - Database user ID
+ * @returns {Promise<Object>} Result of COD unlock check
+ */
+export async function checkAutoUnlockCOD(userId) {
+    try {
+        console.log('🔓 Checking COD auto-unlock for user:', userId);
+
+        // Get user's delivered orders (include grand_total when available)
+        const { data: deliveredOrders, error } = await supabase
+            .from(TABLES.orders)
+            .select('total, grand_total, created_at')
+            .eq('user_id', userId)
+            .eq('stage', 'Delivered')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching user orders for COD check:', error);
+            return { success: false, error };
+        }
+
+        // By default count all delivered orders, but we'll later filter by min per-order amount
+        // after loading settings.
+
+        // Log basic info about fetched orders (detailed stats are logged after computation)
+        console.log('📊 COD eligibility fetched delivered orders count:', (deliveredOrders || []).length);
+
+        // Get COD unlock criteria from settings (include single-order min amount)
+        const { data: codSettings } = await supabase
+            .from(TABLES.settings)
+            .select('*')
+            .in('key', ['cod_min_orders', 'cod_min_spend', 'cod_min_order_amount']);
+
+        let minOrders = 3;
+        let minSpend = 1000;
+        let minOrderAmount = 0; // don't filter by default unless set explicitly
+
+        if (codSettings) {
+            codSettings.forEach(setting => {
+                if (setting.key === 'cod_min_orders') {
+                    minOrders = parseInt(setting.value) || 3;
+                } else if (setting.key === 'cod_min_spend') {
+                    minSpend = parseInt(setting.value) || 1000;
+                } else if (setting.key === 'cod_min_order_amount') {
+                    minOrderAmount = parseFloat(setting.value) || 0;
+                }
+            });
+        }
+
+        // If a per-order minimum is configured, only consider delivered orders whose
+        // total (prefer grand_total when present) meets or exceeds that amount.
+        const eligibleDelivered = (deliveredOrders || []).filter(order => {
+            const orderTotal = parseFloat(order.grand_total || order.total || 0);
+            if (minOrderAmount && minOrderAmount > 0) {
+                return orderTotal >= minOrderAmount;
+            }
+            return true;
+        });
+
+        const successfulOrders = eligibleDelivered.length || 0;
+        const totalSpent = eligibleDelivered.reduce((sum, order) => sum + parseFloat(order.grand_total || order.total || 0), 0) || 0;
+
+        // Detailed computed stats for debugging
+        console.log('📊 COD eligibility computed stats:', { userId, successfulOrders, totalSpent, minOrders, minSpend, minOrderAmount });
+
+        // COD unlock criteria:
+        // - If both minOrders and minSpend are configured (>0), require BOTH to be satisfied.
+        // - Otherwise, if only one is configured (>0), allow that one to unlock COD (OR behavior).
+        let shouldUnlock = false;
+        const hasMinOrders = !!(minOrders && minOrders > 0);
+        const hasMinSpend = !!(minSpend && minSpend > 0);
+
+        if (hasMinOrders && hasMinSpend) {
+            shouldUnlock = successfulOrders >= minOrders && totalSpent >= minSpend;
+        } else {
+            shouldUnlock = (hasMinOrders && successfulOrders >= minOrders) || (hasMinSpend && totalSpent >= minSpend);
+        }
+
+        console.log('📊 COD unlock decision:', { userId, hasMinOrders, hasMinSpend, minOrders, minSpend, successfulOrders, totalSpent, shouldUnlock });
+
+        if (shouldUnlock) {
+            // Check if user is already unlocked
+            const { data: userData, error: userError } = await supabase
+                .from(TABLES.users)
+                .select('cod_unlocked')
+                .eq('id', userId)
+                .single();
+
+            if (userError) {
+                console.error('Error checking user COD status:', userError);
+                return { success: false, error: userError };
+            }
+
+            if (!userData.cod_unlocked) {
+                // Unlock COD for user
+                const { error: updateError } = await supabase
+                    .from(TABLES.users)
+                    .update({ cod_unlocked: true })
+                    .eq('id', userId);
+
+                if (updateError) {
+                    console.error('Error unlocking COD:', updateError);
+                    return { success: false, error: updateError };
+                }
+
+                console.log('✅ COD automatically unlocked for user:', userId);
+                return {
+                    success: true,
+                    unlocked: true,
+                    reason: successfulOrders >= minOrders ? `${minOrders}+ successful orders` : `₱${minSpend}+ total spent`,
+                    stats: { successfulOrders, totalSpent }
+                };
+            }
+        }
+
+        return {
+            success: true,
+            unlocked: false,
+            stats: { successfulOrders, totalSpent },
+            requirements: {
+                minOrders: minOrders,
+                minSpent: minSpend,
+                minOrderAmount: minOrderAmount,
+                currentOrders: successfulOrders,
+                currentSpent: totalSpent
+            }
+        };
+
+    } catch (error) {
+        console.error('Error in checkAutoUnlockCOD:', error);
+        return { success: false, error };
+    }
+}
+
+/**
  * Transform product data from snake_case to camelCase for compatibility with existing templates
  * @param {Object|Array} data - Product data from database
  * @returns {Object|Array} Transformed product data
@@ -48,7 +183,7 @@ function transformProductData(data) {
 export async function getFeaturedProducts(limit = 8) {
     try {
         console.log('📦 getFeaturedProducts: Fetching featured products');
-        
+
         const { data, error } = await supabase
             .from(TABLES.products)
             .select('*')
@@ -79,7 +214,7 @@ export async function getFeaturedProducts(limit = 8) {
 export async function getProductsByCategory(categoryName) {
     try {
         console.log('📦 getProductsByCategory: Fetching products for category:', categoryName);
-        
+
         const { data, error } = await supabase
             .from(TABLES.products)
             .select('*')
@@ -108,7 +243,7 @@ export async function getProductsByCategory(categoryName) {
 export async function getProductById(productId) {
     try {
         console.log('📦 getProductById: Fetching product:', productId);
-        
+
         const { data, error } = await supabase
             .from(TABLES.products)
             .select(`
@@ -147,7 +282,7 @@ export async function getProductById(productId) {
 export async function getProductsByPharmacy(pharmacyId) {
     try {
         console.log('📦 getProductsByPharmacy: Fetching products for pharmacy:', pharmacyId);
-        
+
         const { data, error } = await supabase
             .from(TABLES.products)
             .select(`
@@ -178,7 +313,7 @@ export async function getProductsByPharmacy(pharmacyId) {
 export async function addProduct(productData) {
     try {
         console.log('📦 addProduct: Adding new product:', productData.name);
-        
+
         const { data, error } = await supabase
             .from(TABLES.products)
             .insert([productData])
@@ -207,7 +342,7 @@ export async function addProduct(productData) {
 export async function updateProduct(productId, updates) {
     try {
         console.log('📦 updateProduct: Updating product:', productId);
-        
+
         const { data, error } = await supabase
             .from(TABLES.products)
             .update({
@@ -239,7 +374,7 @@ export async function updateProduct(productId, updates) {
 export async function deleteProduct(productId) {
     try {
         console.log('📦 deleteProduct: Deleting product:', productId);
-        
+
         const { error } = await supabase
             .from(TABLES.products)
             .delete()
@@ -269,7 +404,7 @@ export async function deleteProduct(productId) {
 export async function createOrder(orderData) {
     try {
         console.log('🛒 createOrder: Creating new order');
-        
+
         // Start a transaction-like operation
         const { data: order, error: orderError } = await supabase
             .from(TABLES.orders)
@@ -298,7 +433,7 @@ export async function createOrder(orderData) {
 export async function addOrderItems(orderItems) {
     try {
         console.log('🛒 addOrderItems: Adding', orderItems.length, 'order items');
-        
+
         const { data, error } = await supabase
             .from(TABLES.order_items)
             .insert(orderItems)
@@ -326,7 +461,7 @@ export async function addOrderItems(orderItems) {
 export async function getOrdersByUser(userId, limit = null) {
     try {
         console.log('🛒 getOrdersByUser: Fetching orders for user:', userId);
-        
+
         let query = supabase
             .from(TABLES.orders)
             .select(`
@@ -366,7 +501,7 @@ export async function getOrdersByUser(userId, limit = null) {
 export async function getOrdersByPharmacy(pharmacyId) {
     try {
         console.log('🛒 getOrdersByPharmacy: Fetching orders for pharmacy:', pharmacyId);
-        
+
         // First get products for this pharmacy
         const { data: products, error: productsError } = await supabase
             .from(TABLES.products)
@@ -379,7 +514,7 @@ export async function getOrdersByPharmacy(pharmacyId) {
         }
 
         const productIds = products?.map(p => p.id) || [];
-        
+
         if (productIds.length === 0) {
             console.log('✅ getOrdersByPharmacy: No products found, returning empty array');
             return [];
@@ -426,7 +561,7 @@ export async function getOrdersByPharmacy(pharmacyId) {
 export async function updateOrderStage(orderId, stage, additionalUpdates = {}) {
     try {
         console.log('🛒 updateOrderStage: Updating order', orderId, 'to stage:', stage);
-        
+
         const updateData = {
             stage,
             updated_at: new Date().toISOString(),
@@ -446,6 +581,26 @@ export async function updateOrderStage(orderId, stage, additionalUpdates = {}) {
         }
 
         console.log('✅ updateOrderStage: Order updated');
+
+        // If the order was moved to Delivered, run COD auto-unlock check for the user
+        try {
+            if (stage === 'Delivered' && data && data.user_id) {
+                console.log('🔁 Order moved to Delivered — running COD auto-unlock check for user:', data.user_id);
+                // Importing the function locally to avoid circular import issues in some bundlers/environments
+                if (typeof checkAutoUnlockCOD === 'function') {
+                    await checkAutoUnlockCOD(data.user_id);
+                } else {
+                    // dynamic import as a fallback
+                    const mod = await import('./supabase-database.js');
+                    if (mod && typeof mod.checkAutoUnlockCOD === 'function') {
+                        await mod.checkAutoUnlockCOD(data.user_id);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error running COD auto-unlock after order update:', e);
+        }
+
         return data;
     } catch (error) {
         console.error('❌ updateOrderStage: Exception:', error);
@@ -465,7 +620,7 @@ export async function updateOrderStage(orderId, stage, additionalUpdates = {}) {
 export async function getAddressesByUser(userId) {
     try {
         console.log('📍 getAddressesByUser: Fetching addresses for user:', userId);
-        
+
         const { data, error } = await supabase
             .from(TABLES.addresses)
             .select('*')
@@ -493,7 +648,7 @@ export async function getAddressesByUser(userId) {
 export async function addAddress(addressData) {
     try {
         console.log('📍 addAddress: Adding new address');
-        
+
         const { data, error } = await supabase
             .from(TABLES.addresses)
             .insert([addressData])
@@ -522,7 +677,7 @@ export async function addAddress(addressData) {
 export async function updateAddress(addressId, updates) {
     try {
         console.log('📍 updateAddress: Updating address:', addressId);
-        
+
         const { data, error } = await supabase
             .from(TABLES.addresses)
             .update(updates)
@@ -551,7 +706,7 @@ export async function updateAddress(addressId, updates) {
 export async function deleteAddress(addressId) {
     try {
         console.log('📍 deleteAddress: Deleting address:', addressId);
-        
+
         const { error } = await supabase
             .from(TABLES.addresses)
             .delete()
@@ -581,7 +736,7 @@ export async function deleteAddress(addressId) {
 export async function getPharmacyByUserId(userId) {
     try {
         console.log('🏥 getPharmacyByUserId: Fetching pharmacy for user:', userId);
-        
+
         const { data, error } = await supabase
             .from(TABLES.pharmacies)
             .select('*')
@@ -614,7 +769,7 @@ export async function getPharmacyByUserId(userId) {
 export async function updatePharmacyWallet(pharmacyId, walletUpdates) {
     try {
         console.log('🏥 updatePharmacyWallet: Updating wallet for pharmacy:', pharmacyId);
-        
+
         const { data, error } = await supabase
             .from(TABLES.pharmacies)
             .update({
@@ -649,7 +804,7 @@ export async function updatePharmacyWallet(pharmacyId, walletUpdates) {
 export async function getSettings() {
     try {
         console.log('⚙️ getSettings: Fetching system settings');
-        
+
         const { data, error } = await supabase
             .from(TABLES.settings)
             .select('key, value');
@@ -682,7 +837,7 @@ export async function getSettings() {
 export async function updateSetting(key, value) {
     try {
         console.log('⚙️ updateSetting: Updating setting:', key);
-        
+
         const { data, error } = await supabase
             .from(TABLES.settings)
             .update({
@@ -718,7 +873,7 @@ export async function updateSetting(key, value) {
  */
 export function subscribeToUserOrders(userId, callback) {
     console.log('🔄 subscribeToUserOrders: Setting up subscription for user:', userId);
-    
+
     const subscription = supabase
         .channel('user-orders')
         .on('postgres_changes', {
@@ -748,7 +903,7 @@ export function subscribeToUserOrders(userId, callback) {
  */
 export function subscribeToPharmacyOrders(pharmacyId, callback) {
     console.log('🔄 subscribeToPharmacyOrders: Setting up subscription for pharmacy:', pharmacyId);
-    
+
     // Note: This is a simplified version. For complex filtering like Firebase,
     // you might need to use database triggers or functions.
     const subscription = supabase

@@ -9,7 +9,7 @@ export const supabaseConfig = {
 // Table names mapping from Firebase collections
 export const TABLES = {
     users: 'users',
-    products: 'products', 
+    products: 'products',
     orders: 'orders',
     pharmacies: 'pharmacies',
     settings: 'settings',
@@ -50,29 +50,29 @@ export function safeDateConversion(timestamp) {
         if (!timestamp) {
             return new Date();
         }
-        
+
         // Handle ISO date strings from Supabase
         if (typeof timestamp === 'string') {
             return new Date(timestamp);
         }
-        
+
         // Handle Unix timestamps (numbers)
         if (typeof timestamp === 'number') {
             return new Date(timestamp);
         }
-        
+
         // Handle regular Date objects
         if (timestamp instanceof Date) {
             return timestamp;
         }
-        
+
         // Try to parse as a date string
         const date = new Date(timestamp);
         if (isNaN(date.getTime())) {
             console.warn('Invalid date provided, using current date:', timestamp);
             return new Date();
         }
-        
+
         return date;
     } catch (error) {
         console.error('Error converting timestamp to date:', error, timestamp);
@@ -90,7 +90,7 @@ export function formatDate(timestamp, options = {}) {
         hour: '2-digit',
         minute: '2-digit'
     };
-    
+
     return date.toLocaleDateString('en-US', { ...defaultOptions, ...options });
 }
 
@@ -124,52 +124,52 @@ export function getProfessionalErrorMessage(error) {
             case 'wrong_password':
             case 'user_not_found':
                 return 'Invalid email or password. Please check your credentials and try again.';
-            
+
             case 'invalid_email':
                 return 'Please enter a valid email address.';
-            
+
             case 'user_disabled':
             case 'account_disabled':
                 return 'Your account has been disabled by an administrator. Please contact support for assistance.';
-            
+
             case 'too_many_requests':
                 return 'Too many failed attempts. Please wait a moment before trying again.';
-            
+
             case 'email_already_registered':
                 return 'An account with this email already exists. Please use a different email or try logging in.';
-            
+
             case 'weak_password':
                 return 'Password is too weak. Please choose a stronger password with at least 6 characters.';
-            
+
             // Database errors
             case 'PGRST301':
                 return 'You do not have permission to perform this action. Please contact support if this persists.';
-            
+
             case 'PGRST116':
                 return 'Service is temporarily unavailable. Please try again in a few moments.';
-            
+
             case 'PGRST301':
                 return 'Please log in to continue.';
-            
+
             case 'PGRST116':
                 return 'The requested information was not found.';
-            
+
             default:
                 return 'An unexpected error occurred. Please try again or contact support if the problem persists.';
         }
     }
-    
+
     // Handle generic errors
     if (error.message) {
         // If it's already a user-friendly message, return it
         if (!error.message.includes('supabase') && !error.message.includes('PGRST')) {
             return error.message;
         }
-        
+
         // Otherwise, provide a generic message
         return 'Something went wrong. Please try again.';
     }
-    
+
     // Fallback for unknown errors
     return 'An unexpected error occurred. Please try again.';
 }
@@ -201,14 +201,14 @@ export function showSuccess(message, elementId = 'success') {
 // Loading indicator utility (matching Firebase version)
 export function setButtonLoading(button, isLoading, loadingText = 'Processing...', originalText = null) {
     if (!button) return;
-    
+
     if (isLoading) {
         // Store original text if not provided
         if (!originalText) {
             originalText = button.textContent;
             button.dataset.originalText = originalText;
         }
-        
+
         // Disable button and show loading state
         button.disabled = true;
         button.innerHTML = `
@@ -234,11 +234,11 @@ export function showLoadingModal(title = 'Processing...', message = 'Please wait
     if (existingModal) {
         existingModal.remove();
     }
-    
+
     const modal = document.createElement('div');
     modal.id = 'loading-modal';
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-    
+
     modal.innerHTML = `
         <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center">
             <div class="flex justify-center mb-4">
@@ -251,7 +251,7 @@ export function showLoadingModal(title = 'Processing...', message = 'Please wait
             <p class="text-sm text-gray-600">${message}</p>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     return modal;
 }
@@ -268,4 +268,48 @@ export function hideLoadingModal() {
 export function getFormData(form) {
     const data = new FormData(form);
     return Object.fromEntries(data.entries());
+}
+
+// Simple toast notification helper (non-blocking)
+export function showToast(message, type = 'info', duration = 4000) {
+    try {
+        // Reuse existing container or create one
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.position = 'fixed';
+            container.style.right = '20px';
+            container.style.top = '20px';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.style.marginTop = '8px';
+        toast.style.padding = '10px 14px';
+        toast.style.borderRadius = '8px';
+        toast.style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)';
+        toast.style.color = '#fff';
+        toast.style.fontSize = '14px';
+        toast.style.maxWidth = '320px';
+
+        // Simple color mapping
+        const bg = type === 'success' ? '#16a34a' : type === 'error' ? '#dc2626' : '#2563eb';
+        toast.style.background = bg;
+
+        toast.textContent = message;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.transition = 'opacity 300ms, transform 300ms';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-6px)';
+            setTimeout(() => toast.remove(), 350);
+        }, duration);
+    } catch (err) {
+        // Fallback
+        console.log('Toast:', message);
+    }
 }

@@ -86,6 +86,7 @@ CREATE TABLE public.products (
   disabled boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  discount numeric DEFAULT 0 CHECK (discount >= 0::numeric AND discount <= 100::numeric),
   CONSTRAINT products_pkey PRIMARY KEY (id),
   CONSTRAINT products_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id),
   CONSTRAINT products_pharmacy_id_fkey FOREIGN KEY (pharmacy_id) REFERENCES public.pharmacies(id)
@@ -98,6 +99,22 @@ CREATE TABLE public.settings (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT settings_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.transactions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  order_id uuid,
+  pharmacy_id uuid NOT NULL,
+  amount numeric NOT NULL,
+  commission numeric DEFAULT 0,
+  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['cod_payment_credit'::character varying, 'card_payment_credit'::character varying, 'withdrawal_request'::character varying, 'withdrawal_approved'::character varying, 'withdrawal_rejected'::character varying, 'refund'::character varying]::text[])),
+  status character varying DEFAULT 'completed'::character varying,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  description text,
+  payment_method text,
+  account_details jsonb,
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT transactions_pkey PRIMARY KEY (id),
+  CONSTRAINT transactions_pharmacy_id_fkey FOREIGN KEY (pharmacy_id) REFERENCES public.pharmacies(id)
 );
 CREATE TABLE public.users (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -113,4 +130,21 @@ CREATE TABLE public.users (
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT users_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.withdrawal_requests (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  pharmacy_id uuid NOT NULL,
+  amount numeric NOT NULL CHECK (amount > 0::numeric),
+  payment_method text NOT NULL CHECK (payment_method = ANY (ARRAY['bank_transfer'::text, 'gcash'::text, 'paymaya'::text, 'other'::text])),
+  account_details jsonb NOT NULL,
+  status text NOT NULL DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'approved'::text, 'rejected'::text, 'completed'::text])),
+  requested_at timestamp with time zone DEFAULT now(),
+  reviewed_at timestamp with time zone,
+  reviewed_by uuid,
+  notes text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT withdrawal_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT withdrawal_requests_pharmacy_id_fkey FOREIGN KEY (pharmacy_id) REFERENCES public.pharmacies(id),
+  CONSTRAINT withdrawal_requests_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES public.users(id)
 );
