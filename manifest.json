@@ -9,7 +9,12 @@
   "orientation": "portrait-primary",
   "scope": "./",
   "lang": "en",
-  "categories": ["health", "medical", "shopping", "pharmacy"],
+  "categories": [
+    "health",
+    "medical",
+    "healthcare",
+    "pharmacy"
+  ],
   "icons": [
     {
       "src": "favicon.ico",
@@ -32,7 +37,7 @@
       "url": "./track/"
     },
     {
-      "name": "Shopping Cart",
+      "name": "Medicine Cart",
       "short_name": "Cart",
       "description": "View your cart",
       "url": "./cart/"
